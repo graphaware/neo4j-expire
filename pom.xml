@@ -28,6 +28,29 @@
 
     <inceptionYear>2016</inceptionYear>
 
+    <dependencies>
+
+        <dependency>
+            <groupId>com.graphaware.neo4j</groupId>
+            <artifactId>runtime</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.graphaware.neo4j</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.graphaware.neo4j</groupId>
+            <artifactId>server</artifactId>
+        </dependency>
+    </dependencies>
+
     
 
 </project>
