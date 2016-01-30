@@ -5,7 +5,9 @@ import org.neo4j.graphdb.index.IndexHits;
 
 public interface ExpirationIndexer {
 
-    public void indexNode(Node node);
+    void indexNode(Node node);
 
-    public IndexHits<Node> nodesExpiringBefore(Long timestamp);
+    IndexHits<Node> nodesExpiringBefore(Long timestamp);
+
+    void deleteNode(Node node);
 }

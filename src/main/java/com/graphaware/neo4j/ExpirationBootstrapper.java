@@ -17,6 +17,6 @@ public class ExpirationBootstrapper extends BaseRuntimeModuleBootstrapper<Expira
 
     @Override
     protected RuntimeModule doBootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database, ExpirationConfiguration configuration) {
-        return new ExpirationModule(moduleId, new LegacyIndexer(database, configuration));
+        return new ExpirationModule(moduleId, new LegacyIndexer(database, configuration), configuration);
     }
 }

@@ -48,4 +48,12 @@ public class LegacyIndexer implements ExpirationIndexer {
         }
 
     }
+
+    @Override
+    public void deleteNode(Node node) {
+        try(Transaction tx = database.beginTx()) {
+            Index<Node> index = database.index().forNodes(configuration.getExpirationIndex());
+            index.remove(node, configuration.getExpirationProperty());
+        }
+    }
 }
