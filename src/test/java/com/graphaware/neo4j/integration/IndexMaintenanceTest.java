@@ -1,25 +1,13 @@
 package com.graphaware.neo4j.integration;
 
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.neo4j.integration.helpers.ExpirationIntegrationTest;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class IndexMaintenanceTest extends GraphAwareApiTest {
-
-    @Override
-    protected String propertiesFile() {
-        try {
-            return new ClassPathResource("neo4j-expire-all.properties").getFile().getAbsolutePath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+public class IndexMaintenanceTest extends ExpirationIntegrationTest {
 
 
     @Test

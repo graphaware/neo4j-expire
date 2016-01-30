@@ -2,27 +2,12 @@ package com.graphaware.neo4j.integration;
 
 import com.graphaware.neo4j.config.ExpirationConfiguration;
 import com.graphaware.neo4j.indexer.LegacyIndexer;
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.neo4j.integration.helpers.ExpirationIntegrationTest;
 import org.junit.Test;
-import org.neo4j.graphdb.Transaction;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-public class IndexReaderTest extends GraphAwareApiTest {
-
-    @Override
-    protected String propertiesFile() {
-        try {
-            return new ClassPathResource("neo4j-expire-all.properties").getFile().getAbsolutePath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+public class IndexReaderTest extends ExpirationIntegrationTest {
 
     @Test
     public void canFindNodesExpiringBeforeATimeStamp() throws InterruptedException {
