@@ -23,11 +23,20 @@ public class IndexMaintenanceTest extends GraphAwareApiTest {
 
 
     @Test
-    public void nodesWithExpirationPropertiesGetIndexed() throws InterruptedException {
+    public void nodesWithNumericExpirationPropertiesGetIndexed() throws InterruptedException {
         getDatabase().execute("CREATE (p:Person {name: 'Dave', _expire: 123})");
 
         try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(getDatabase().index().existsForNodes("expirationIndex"));
+        }
+    }
+
+    @Test
+    public void nodesWithNonNumericExpirationPropertiesGetIndexed() throws InterruptedException {
+        getDatabase().execute("CREATE (p:Person {name: 'Dave', _expire: 'asd'})");
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertFalse(getDatabase().index().existsForNodes("expirationIndex"));
         }
     }
 

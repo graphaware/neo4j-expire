@@ -28,8 +28,7 @@ public class ExpirationController {
 
     @RequestMapping(value="/from/{timestamp}", method = RequestMethod.POST)
     @ResponseBody
-    public void expire(Long timestamp) {
-
+    public void expiresBy(Long timestamp) {
 
     }
 
