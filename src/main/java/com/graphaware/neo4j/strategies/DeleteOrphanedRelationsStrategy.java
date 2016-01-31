@@ -2,7 +2,6 @@ package com.graphaware.neo4j.strategies;
 
 import com.graphaware.neo4j.NodeDeleter;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
 
 import java.util.Date;
 
@@ -15,6 +14,6 @@ public class DeleteOrphanedRelationsStrategy extends ExpirationStrategy {
     public void expireNodes() {
         long millisecondsFromEpoch = new Date().getTime();
 
-        deleter.deleteNodesExpiringBefore(millisecondsFromEpoch);
+        deleter.deleteNodesIncludingAdjoiningEdgesExpiringBefore(millisecondsFromEpoch);
     }
 }

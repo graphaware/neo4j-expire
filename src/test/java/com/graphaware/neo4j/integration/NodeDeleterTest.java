@@ -5,9 +5,6 @@ import com.graphaware.neo4j.config.ExpirationConfiguration;
 import com.graphaware.neo4j.indexer.LegacyIndexer;
 import com.graphaware.neo4j.integration.helpers.ExpirationIntegrationTest;
 import org.junit.Test;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.tooling.GlobalGraphOperations;
 
 import static org.junit.Assert.assertEquals;
 
@@ -20,7 +17,7 @@ public class NodeDeleterTest extends ExpirationIntegrationTest {
 
         NodeDeleter deleter = new NodeDeleter(getDatabase(), new LegacyIndexer(getDatabase(), ExpirationConfiguration.defaultConfiguration()));
 
-        deleter.deleteNodesExpiringBefore(200);
+        deleter.deleteNodesIncludingAdjoiningEdgesExpiringBefore(200);
 
         assertEquals(1, getNodeCount());
     }
@@ -32,7 +29,7 @@ public class NodeDeleterTest extends ExpirationIntegrationTest {
 
         NodeDeleter deleter = new NodeDeleter(getDatabase(), new LegacyIndexer(getDatabase(), ExpirationConfiguration.defaultConfiguration()));
 
-        deleter.deleteNodesExpiringBefore(50);
+        deleter.deleteNodesIncludingAdjoiningEdgesExpiringBefore(50);
 
         assertEquals(2, getNodeCount());
     }

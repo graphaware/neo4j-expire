@@ -25,11 +25,27 @@ public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
 
     @Test
     public void nodeGetsDeletedAfterExpirationTime() throws InterruptedException {
-        Long inOneSecond = new Date().getTime(); //+ ONE_SECOND;
+        Long inOneSecond = new Date().getTime() + ONE_SECOND;
         getDatabase().execute(
                 String.format("CREATE (p:Person {name: 'Dave', _expire: %d})", inOneSecond));
 
-        Thread.sleep(3000);
+        Thread.sleep(2 * ONE_SECOND);
         assertEquals(0, getNodeCount());
+    }
+
+    @Test
+    public void nodeGetsDeletedWhenInRelationAfterExpirationTime() throws InterruptedException {
+        Long inOneSecond = new Date().getTime() + ONE_SECOND;
+        getDatabase().execute(
+                String.format("CREATE (p:Person {name: 'Dave', _expire: %d})", inOneSecond));
+        getDatabase().execute("CREATE (p:Person {name: 'Bill'})");
+        getDatabase().execute("MATCH (p:Person),(q:Person)\n" +
+                "WHERE p.name = 'Dave' AND q.name = 'Bill'\n" +
+                "CREATE (q)-[r:Father]->(p)\n" +
+                "RETURN r");
+
+        Thread.sleep(3 * ONE_SECOND);
+
+        assertEquals(1, getNodeCount());
     }
 }
