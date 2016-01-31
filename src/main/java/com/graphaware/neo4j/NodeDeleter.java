@@ -21,9 +21,11 @@ public class NodeDeleter {
         IndexHits<Node> expiringNodes = indexer.nodesExpiringBefore(timestamp);
 
         try (Transaction tx = database.beginTx()) {
+
             for (Node node : expiringNodes) {
                 node.delete();
             }
+
             tx.success();
         }
 
