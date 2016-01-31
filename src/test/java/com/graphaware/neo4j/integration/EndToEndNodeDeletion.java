@@ -8,6 +8,8 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.util.Date;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 
 public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
@@ -30,7 +32,8 @@ public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
                 String.format("CREATE (p:Person {name: 'Dave', _expire: %d})", inOneSecond));
 
         Thread.sleep(2 * ONE_SECOND);
-        assertEquals(0, getNodeCount());
+
+        assertThat(getNodeCount(), equalTo(0L));
     }
 
     @Test
@@ -46,6 +49,6 @@ public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
 
         Thread.sleep(3 * ONE_SECOND);
 
-        assertEquals(1, getNodeCount());
+        assertThat(getNodeCount(), equalTo(1L));
     }
 }

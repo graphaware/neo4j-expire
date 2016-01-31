@@ -5,7 +5,9 @@ import com.graphaware.neo4j.indexer.LegacyIndexer;
 import com.graphaware.neo4j.integration.helpers.ExpirationIntegrationTest;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class IndexReaderTest extends ExpirationIntegrationTest {
 
@@ -16,7 +18,7 @@ public class IndexReaderTest extends ExpirationIntegrationTest {
 
         LegacyIndexer indexer = new LegacyIndexer(getDatabase(), ExpirationConfiguration.defaultConfiguration());
 
-        assertEquals(1, indexer.nodesExpiringBefore(200L).size());
+        assertThat(indexer.nodesExpiringBefore(200L).size(), equalTo(1));
     }
 
     @Test
@@ -26,7 +28,9 @@ public class IndexReaderTest extends ExpirationIntegrationTest {
 
         LegacyIndexer indexer = new LegacyIndexer(getDatabase(), ExpirationConfiguration.defaultConfiguration());
 
-        assertEquals(0, indexer.nodesExpiringBefore(50L).size());
+        assertThat(indexer.nodesExpiringBefore(50L).size(), equalTo(0));
     }
+
+
 
 }

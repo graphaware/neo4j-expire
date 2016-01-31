@@ -6,7 +6,8 @@ import com.graphaware.neo4j.indexer.LegacyIndexer;
 import com.graphaware.neo4j.integration.helpers.ExpirationIntegrationTest;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 public class NodeDeleterTest extends ExpirationIntegrationTest {
 
@@ -19,7 +20,7 @@ public class NodeDeleterTest extends ExpirationIntegrationTest {
 
         deleter.deleteNodesIncludingAdjoiningEdgesExpiringBefore(200);
 
-        assertEquals(1, getNodeCount());
+        assertThat(getNodeCount(), equalTo(1L));
     }
 
     @Test
@@ -31,7 +32,7 @@ public class NodeDeleterTest extends ExpirationIntegrationTest {
 
         deleter.deleteNodesIncludingAdjoiningEdgesExpiringBefore(50);
 
-        assertEquals(2, getNodeCount());
+        assertThat(getNodeCount(), equalTo(2L));
     }
 
 

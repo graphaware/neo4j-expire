@@ -4,6 +4,8 @@ import com.graphaware.neo4j.integration.helpers.ExpirationIntegrationTest;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -16,7 +18,7 @@ public class IndexMaintenanceTest extends ExpirationIntegrationTest {
         getDatabase().execute("CREATE (p:Person {name: 'Dave', _expire: 123})");
 
         try (Transaction tx = getDatabase().beginTx()) {
-            assertEquals(countNodesExpiringBefore1000(), 1);
+            assertThat(countNodesExpiringBefore1000(), equalTo(1L));
         }
     }
 
@@ -25,7 +27,7 @@ public class IndexMaintenanceTest extends ExpirationIntegrationTest {
         getDatabase().execute("CREATE (p:Person {name: 'Dave', _expire: 'asd'})");
 
         try (Transaction tx = getDatabase().beginTx()) {
-            assertEquals(countNodesExpiringBefore1000(), 0);
+            assertThat(countNodesExpiringBefore1000(), equalTo(0L));
         }
     }
 
@@ -34,7 +36,7 @@ public class IndexMaintenanceTest extends ExpirationIntegrationTest {
         getDatabase().execute("CREATE (p:Person {name: 'Dave'})");
 
         try (Transaction tx = getDatabase().beginTx()) {
-            assertEquals(countNodesExpiringBefore1000(), 0);
+            assertThat(countNodesExpiringBefore1000(), equalTo(0L));
         }
     }
 
@@ -44,7 +46,7 @@ public class IndexMaintenanceTest extends ExpirationIntegrationTest {
         getDatabase().execute("MATCH (p:Person {name: 'Dave', _expire: 123}) SET p._expire = NULL RETURN p");
 
         try(Transaction tx = getDatabase().beginTx()) {
-            assertEquals(countNodesExpiringBefore1000(), 0);
+            assertThat(countNodesExpiringBefore1000(), equalTo(0L));
         }
     }
 
@@ -56,7 +58,7 @@ public class IndexMaintenanceTest extends ExpirationIntegrationTest {
         getDatabase().execute("MATCH (p:Person {name: 'Dave', _expire: 123}) SET p._expire = 100000 RETURN p");
 
         try(Transaction tx = getDatabase().beginTx()) {
-            assertEquals(countNodesExpiringBefore1000(), 1);
+            assertThat(countNodesExpiringBefore1000(), equalTo(1L));
         }
     }
 
