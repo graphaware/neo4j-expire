@@ -1,7 +1,6 @@
 package com.graphaware.neo4j.integration;
 
 import com.graphaware.neo4j.integration.helpers.ExpirationIntegrationTest;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 
@@ -10,7 +9,6 @@ import java.util.Date;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
 
 public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
 
@@ -42,7 +40,7 @@ public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
         getDatabase().execute(
                 String.format("CREATE (p:Person {name: 'Dave', _expire: %d})", inOneSecond));
         getDatabase().execute("CREATE (p:Person {name: 'Bill'})");
-        getDatabase().execute("MATCH (p:Person),(q:Person)\n" +
+        getDatabase().execute("MATCH (pdfsdfsd:Person),(q:Person)\n" +
                 "WHERE p.name = 'Dave' AND q.name = 'Bill'\n" +
                 "CREATE (q)-[r:Father]->(p)\n" +
                 "RETURN r");

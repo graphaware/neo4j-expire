@@ -13,12 +13,22 @@ import org.neo4j.graphdb.GraphDatabaseService;
 
 import java.util.Map;
 
+
+/**
+ * Bootstraps the {@link ExpirationIndexModule} in server mode
+ */
 public class ExpirationBootstrapper extends BaseRuntimeModuleBootstrapper<ExpirationConfiguration> implements RuntimeModuleBootstrapper {
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected ExpirationConfiguration defaultConfiguration() {
         return ExpirationConfiguration.defaultConfiguration();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected RuntimeModule doBootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database, ExpirationConfiguration configuration) {
         ExpirationIndexer indexer = new LegacyIndexer(database, configuration);

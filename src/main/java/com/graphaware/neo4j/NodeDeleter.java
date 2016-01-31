@@ -7,8 +7,10 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.IndexHits;
 
+/**
+ * Encapsulates deletion of nodes when using the {@link com.graphaware.neo4j.indexer.LegacyIndexer}
+ */
 public class NodeDeleter {
-
 
     private final GraphDatabaseService database;
     private final ExpirationIndexer indexer;
@@ -18,6 +20,11 @@ public class NodeDeleter {
         this.database = database;
     }
 
+    /**
+     * Use the {@link com.graphaware.neo4j.indexer.LegacyIndexer} to determine nodes which have expired and remove them,
+     * removing all edges it is adjacent to
+     * @param timestamp The timestamp to query for, given as milliseconds since Jan 1 1970
+     */
     public void deleteNodesIncludingAdjoiningEdgesExpiringBefore(long timestamp) {
 
         try (Transaction tx = database.beginTx()) {

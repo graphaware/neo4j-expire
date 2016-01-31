@@ -12,9 +12,6 @@ import com.graphaware.runtime.module.*;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-
-import java.util.Date;
 
 public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule {
 
@@ -45,15 +42,7 @@ public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule 
 
     }
 
-    @Override
-    public void initialize(GraphDatabaseService graphDatabaseService) {
 
-    }
-
-    @Override
-    public void reinitialize(GraphDatabaseService graphDatabaseService, TxDrivenModuleMetadata txDrivenModuleMetadata) {
-
-    }
 
     @Override
     public Void beforeCommit(ImprovedTransactionData improvedTransactionData) throws DeliberateTransactionRollbackException {
@@ -62,27 +51,17 @@ public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule 
         }
 
         for (Node node : improvedTransactionData.getAllDeletedNodes()) {
-            indexer.deleteNode(node);
+            indexer.removeNode(node);
         }
 
         for (Change<Node> change : improvedTransactionData.getAllChangedNodes()) {
             if (hasUpdatedExpireProperty(change.getPrevious(), change.getCurrent())) {
-                indexer.deleteNode(change.getPrevious());
+                indexer.removeNode(change.getPrevious());
                 indexer.indexNode(change.getCurrent());
             }
         }
 
         return null;
-    }
-
-    @Override
-    public void afterCommit(Object state) {
-
-    }
-
-    @Override
-    public void afterRollback(Object state) {
-
     }
 
     @Override
@@ -104,6 +83,27 @@ public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule 
     @Override
     public String getId() {
         return moduleId;
+    }
+
+
+    //Trivial Implementations
+
+    @Override
+    public void initialize(GraphDatabaseService graphDatabaseService) {
+    }
+
+    @Override
+    public void reinitialize(GraphDatabaseService graphDatabaseService, TxDrivenModuleMetadata txDrivenModuleMetadata) {
+    }
+
+    @Override
+    public void afterCommit(Object state) {
+
+    }
+
+    @Override
+    public void afterRollback(Object state) {
+
     }
 
     @Override

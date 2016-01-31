@@ -8,19 +8,26 @@ import com.graphaware.neo4j.strategies.ManualExpirationStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.config.BaseTxDrivenModuleConfiguration;
 import com.graphaware.runtime.config.TimerDrivenModuleConfiguration;
+import com.graphaware.runtime.policy.InclusionPoliciesFactory;
 
+
+/**
+ * {@link BaseTxAndTimerDrivenModuleConfiguration} for {@link com.graphaware.neo4j.ExpirationIndexModule}.
+ */
 public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfiguration<ExpirationConfiguration> {
 
     private static final String EXPIRATION_INDEX = "expirationIndex";
     private static final String EXPIRATION_PROPERTY = "_expire";
 
-    private static final String EXPIRATION_STRATEGY_NAME = "manual";
-
-
     public ExpirationConfiguration(InclusionPolicies inclusionPolicies, long initializeUntil, InstanceRolePolicy instanceRolePolicy) {
         super(inclusionPolicies, initializeUntil, instanceRolePolicy);
     }
-
+    /**
+     * Create a default configuration with
+     * inclusion policies = {@link InclusionPoliciesFactory#allBusiness()},
+     * and initialize until = {@link #ALWAYS}.
+     * and instance role police = {@link com.graphaware.runtime.config.TimerDrivenModuleConfiguration.InstanceRolePolicy#ANY}
+     */
     public static ExpirationConfiguration defaultConfiguration() {
         return new ExpirationConfiguration(InclusionPolicies.all(), ALWAYS, InstanceRolePolicy.ANY);
     }
@@ -33,6 +40,9 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
         return EXPIRATION_PROPERTY;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected ExpirationConfiguration newInstance(InclusionPolicies inclusionPolicies, long initializeUntil, InstanceRolePolicy instanceRolePolicy) {
         return new ExpirationConfiguration(inclusionPolicies, initializeUntil, instanceRolePolicy);

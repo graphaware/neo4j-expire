@@ -20,6 +20,9 @@ public class LegacyIndexer implements ExpirationIndexer {
         this.configuration = configuration;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void indexNode(Node node) {
         String expirationProperty = configuration.getExpirationProperty();
@@ -38,6 +41,9 @@ public class LegacyIndexer implements ExpirationIndexer {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IndexHits<Node> nodesExpiringBefore(Long timestamp) {
 
@@ -53,11 +59,15 @@ public class LegacyIndexer implements ExpirationIndexer {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void deleteNode(Node node) {
+    public void removeNode(Node node) {
         try(Transaction tx = database.beginTx()) {
             Index<Node> index = database.index().forNodes(configuration.getExpirationIndex());
             index.remove(node, configuration.getExpirationProperty());
+            tx.success();
         }
     }
 }
