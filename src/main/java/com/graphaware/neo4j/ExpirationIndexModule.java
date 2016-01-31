@@ -76,11 +76,13 @@ public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule 
     }
 
     @Override
-    public void afterCommit(Object o) {
+    public void afterCommit(Object state) {
+
     }
 
     @Override
-    public void afterRollback(Object o) {
+    public void afterRollback(Object state) {
+
     }
 
     @Override

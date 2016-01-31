@@ -14,9 +14,7 @@ public class DeleteOrphanedRelationsStrategy extends ExpirationStrategy {
 
     public void expireNodes() {
         long millisecondsFromEpoch = new Date().getTime();
-        try (Transaction tx = database.beginTx()) {
-            deleter.deleteNodesExpiringBefore(millisecondsFromEpoch);
-            tx.success();
-        }
+
+        deleter.deleteNodesExpiringBefore(millisecondsFromEpoch);
     }
 }

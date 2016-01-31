@@ -41,11 +41,15 @@ public class LegacyIndexer implements ExpirationIndexer {
     @Override
     public IndexHits<Node> nodesExpiringBefore(Long timestamp) {
 
+        IndexHits<Node> expiringNodes;
+
         try (Transaction tx = database.beginTx()) {
             Index<Node> index = database.index().forNodes(configuration.getExpirationIndex());
-            IndexHits<Node> expiringNodes = index.query(QueryContext.numericRange(configuration.getExpirationProperty(), 0L, timestamp));
-            return expiringNodes;
+            expiringNodes = index.query(QueryContext.numericRange(configuration.getExpirationProperty(), 0L, timestamp));
+            tx.success();
         }
+
+        return expiringNodes;
 
     }
 

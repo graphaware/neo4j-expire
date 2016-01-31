@@ -28,7 +28,7 @@ public class ExpirationBootstrapper extends BaseRuntimeModuleBootstrapper<Expira
                     indexer,
                     configuration,
                     deleter,
-                    new ExpirationStrategyFactory(database, deleter).build("manual"));
+                    new ExpirationStrategyFactory(database, deleter).build(config.get("expirationStrategy")));
         } catch (InvalidExpirationStrategyException e) {
             //TODO: Logging
             return new ExpirationIndexModule(moduleId,

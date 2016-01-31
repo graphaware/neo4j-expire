@@ -11,7 +11,7 @@ public class TempTestBootstrapper extends GraphAwareApiTest {
     @Override
     protected String propertiesFile() {
         try {
-            return new ClassPathResource("neo4j-expire-all.properties").getFile().getAbsolutePath();
+            return new ClassPathResource("neo4j-expire-manual.properties").getFile().getAbsolutePath();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
