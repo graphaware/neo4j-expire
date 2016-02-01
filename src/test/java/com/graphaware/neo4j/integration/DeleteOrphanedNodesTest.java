@@ -10,7 +10,7 @@ import java.util.Date;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
+public class DeleteOrphanedNodesTest extends ExpirationIntegrationTest {
 
     private static final long ONE_SECOND = 1000L;
 
@@ -29,7 +29,7 @@ public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
         getDatabase().execute(
                 String.format("CREATE (p:Person {name: 'Dave', _expire: %d})", inOneSecond));
 
-        Thread.sleep(2 * ONE_SECOND);
+        Thread.sleep(3 * ONE_SECOND);
 
         assertThat(getNodeCount(), equalTo(0L));
     }
@@ -44,6 +44,26 @@ public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
                 "WHERE p.name = 'Dave' AND q.name = 'Bill'\n" +
                 "CREATE (q)-[r:Father]->(p)\n" +
                 "RETURN r");
+
+        Thread.sleep(5 * ONE_SECOND);
+
+        assertThat(getNodeCount(), equalTo(1L));
+    }
+
+    @Test
+    public void nodesWithoutExpirationPropertiesDoNotGetExpired() throws InterruptedException {
+        getDatabase().execute("CREATE (p:Person {name: 'Bill'})");
+
+        Thread.sleep(3 * ONE_SECOND);
+
+        assertThat(getNodeCount(), equalTo(1L));
+    }
+
+    @Test
+    public void nodesDoNotExpireBeforeTheirTime() throws InterruptedException {
+        Long inTenSeconds = new Date().getTime() + (10 * ONE_SECOND);
+        getDatabase().execute(
+                String.format("CREATE (p:Person {name: 'Dave', _expire: %d})", inTenSeconds));
 
         Thread.sleep(3 * ONE_SECOND);
 
