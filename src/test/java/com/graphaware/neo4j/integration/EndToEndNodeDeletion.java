@@ -40,7 +40,7 @@ public class EndToEndNodeDeletion extends ExpirationIntegrationTest {
         getDatabase().execute(
                 String.format("CREATE (p:Person {name: 'Dave', _expire: %d})", inOneSecond));
         getDatabase().execute("CREATE (p:Person {name: 'Bill'})");
-        getDatabase().execute("MATCH (pdfsdfsd:Person),(q:Person)\n" +
+        getDatabase().execute("MATCH (p:Person),(q:Person)\n" +
                 "WHERE p.name = 'Dave' AND q.name = 'Bill'\n" +
                 "CREATE (q)-[r:Father]->(p)\n" +
                 "RETURN r");
