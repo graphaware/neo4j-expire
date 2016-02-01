@@ -15,6 +15,7 @@ public class ExpirationStrategyFactory {
 
     /**
      * Simple factory method to return the requested strategy from the string config
+     *
      * @param strategyConfiguration Configuration read from neo4j.properties and passed in by {@link com.graphaware.neo4j.ExpirationBootstrapper}
      * @return the requested expiration strategy
      * @throws InvalidExpirationStrategyException when the properties do not match any known strategy

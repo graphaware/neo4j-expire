@@ -8,9 +8,13 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 import org.neo4j.index.lucene.ValueContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class LegacyIndexer implements ExpirationIndexer {
+    private static final Logger LOG = LoggerFactory.getLogger(LegacyIndexer.class);
+
     private GraphDatabaseService database;
     private ExpirationConfiguration configuration;
 
@@ -27,17 +31,18 @@ public class LegacyIndexer implements ExpirationIndexer {
     public void indexNode(Node node) {
         String expirationProperty = configuration.getExpirationProperty();
 
-        if(node.hasProperty(expirationProperty)) {
+        if (node.hasProperty(expirationProperty)) {
             Long timestamp;
 
             try {
                 timestamp = Long.parseLong(node.getProperty(expirationProperty).toString(), 10);
-            } catch (NumberFormatException e ) {
-                //TODO: Logging
+            } catch (NumberFormatException e) {
+                LOG.warn("Node with expiration property not indexed as the property is non-numeric: %s", node.toString());
                 return;
             }
 
-            database.index().forNodes(configuration.getExpirationIndex()).add(node, expirationProperty, new ValueContext(timestamp).indexNumeric());
+            database.index().forNodes(configuration.getExpirationIndex())
+                    .add(node, expirationProperty, new ValueContext(timestamp).indexNumeric());
         }
     }
 
@@ -64,9 +69,11 @@ public class LegacyIndexer implements ExpirationIndexer {
      */
     @Override
     public void removeNode(Node node) {
-        try(Transaction tx = database.beginTx()) {
+        try (Transaction tx = database.beginTx()) {
             Index<Node> index = database.index().forNodes(configuration.getExpirationIndex());
+
             index.remove(node, configuration.getExpirationProperty());
+
             tx.success();
         }
     }

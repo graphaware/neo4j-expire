@@ -1,13 +1,7 @@
 package com.graphaware.neo4j.config;
 
 import com.graphaware.common.policy.InclusionPolicies;
-import com.graphaware.neo4j.strategies.ExpirationStrategy;
-import com.graphaware.neo4j.strategies.ExpirationStrategyFactory;
-import com.graphaware.neo4j.strategies.InvalidExpirationStrategyException;
-import com.graphaware.neo4j.strategies.ManualExpirationStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
-import com.graphaware.runtime.config.BaseTxDrivenModuleConfiguration;
-import com.graphaware.runtime.config.TimerDrivenModuleConfiguration;
 import com.graphaware.runtime.policy.InclusionPoliciesFactory;
 
 
@@ -22,6 +16,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
     public ExpirationConfiguration(InclusionPolicies inclusionPolicies, long initializeUntil, InstanceRolePolicy instanceRolePolicy) {
         super(inclusionPolicies, initializeUntil, instanceRolePolicy);
     }
+
     /**
      * Create a default configuration with
      * inclusion policies = {@link InclusionPoliciesFactory#allBusiness()},

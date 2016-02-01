@@ -10,6 +10,8 @@ import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
 import com.graphaware.runtime.module.RuntimeModule;
 import com.graphaware.runtime.module.RuntimeModuleBootstrapper;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -18,6 +20,8 @@ import java.util.Map;
  * Bootstraps the {@link ExpirationIndexModule} in server mode
  */
 public class ExpirationBootstrapper extends BaseRuntimeModuleBootstrapper<ExpirationConfiguration> implements RuntimeModuleBootstrapper {
+    private static final Logger LOG = LoggerFactory.getLogger(ExpirationBootstrapper.class);
+
     /**
      * {@inheritDoc}
      */
@@ -37,14 +41,14 @@ public class ExpirationBootstrapper extends BaseRuntimeModuleBootstrapper<Expira
             return new ExpirationIndexModule(moduleId,
                     indexer,
                     configuration,
-                    deleter,
                     new ExpirationStrategyFactory(database, deleter).build(config.get("expirationStrategy")));
         } catch (InvalidExpirationStrategyException e) {
-            //TODO: Logging
+
+            LOG.warn("No valid expiration strategy found, falling back to manual strategy");
+
             return new ExpirationIndexModule(moduleId,
                     new LegacyIndexer(database, configuration),
                     configuration,
-                    new NodeDeleter(database, indexer),
                     new ManualExpirationStrategy(database, deleter));
         }
     }

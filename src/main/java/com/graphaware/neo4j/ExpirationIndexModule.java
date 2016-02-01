@@ -8,33 +8,30 @@ import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.metadata.EmptyContext;
 import com.graphaware.runtime.metadata.TimerDrivenModuleContext;
 import com.graphaware.runtime.metadata.TxDrivenModuleMetadata;
-import com.graphaware.runtime.module.*;
+import com.graphaware.runtime.module.DeliberateTransactionRollbackException;
+import com.graphaware.runtime.module.TimerDrivenModule;
+import com.graphaware.runtime.module.TxDrivenModule;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule {
 
+    private static final Logger LOG = LoggerFactory.getLogger(NodeDeleter.class);
+
     private final ExpirationIndexer indexer;
     private final ExpirationConfiguration config;
-    private final NodeDeleter deleter;
     private final String moduleId;
 
     private final ExpirationStrategy expirationStrategy;
 
-    protected ExpirationIndexModule(String moduleId, ExpirationIndexer indexer, ExpirationConfiguration config, NodeDeleter deleter, ExpirationStrategy expirationStrategy) {
+    protected ExpirationIndexModule(String moduleId, ExpirationIndexer indexer, ExpirationConfiguration config, ExpirationStrategy expirationStrategy) {
         this.moduleId = moduleId;
         this.indexer = indexer;
         this.config = config;
-        this.deleter = deleter;
         this.expirationStrategy = expirationStrategy;
-    }
-
-    private boolean hasUpdatedExpireProperty(Node previousNode, Node newNode) {
-        String expirationIndex = config.getExpirationProperty();
-
-        return previousNode.hasProperty(expirationIndex) != newNode.hasProperty(expirationIndex)
-                || !previousNode.getProperty(expirationIndex).equals(newNode.getProperty(config.getExpirationProperty()));
     }
 
     @Override
@@ -43,21 +40,23 @@ public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule 
     }
 
 
-
     @Override
     public Void beforeCommit(ImprovedTransactionData improvedTransactionData) throws DeliberateTransactionRollbackException {
         for (Node node : improvedTransactionData.getAllCreatedNodes()) {
             indexer.indexNode(node);
+            LOG.debug("Node indexed: %s", node.toString());
         }
 
         for (Node node : improvedTransactionData.getAllDeletedNodes()) {
             indexer.removeNode(node);
+            LOG.debug("Node removed from index: %s", node.toString());
         }
 
         for (Change<Node> change : improvedTransactionData.getAllChangedNodes()) {
             if (hasUpdatedExpireProperty(change.getPrevious(), change.getCurrent())) {
                 indexer.removeNode(change.getPrevious());
                 indexer.indexNode(change.getCurrent());
+                LOG.debug("Node index updated: %s", change.getCurrent().toString());
             }
         }
 
@@ -109,5 +108,13 @@ public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule 
     @Override
     public void shutdown() {
 
+    }
+
+
+    private boolean hasUpdatedExpireProperty(Node previousNode, Node newNode) {
+        String expirationIndex = config.getExpirationProperty();
+
+        return previousNode.hasProperty(expirationIndex) != newNode.hasProperty(expirationIndex)
+                || !previousNode.getProperty(expirationIndex).equals(newNode.getProperty(config.getExpirationProperty()));
     }
 }
