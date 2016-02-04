@@ -81,7 +81,7 @@ public class ExpirationIndexModule implements TxDrivenModule, TimerDrivenModule 
 
     @Override
     public BaseTxAndTimerDrivenModuleConfiguration getConfiguration() {
-        return ExpirationConfiguration.defaultConfiguration();
+        return config;
     }
 
     @Override

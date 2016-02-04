@@ -53,6 +53,14 @@ public class ExpirationBootstrapper extends BaseRuntimeModuleBootstrapper<Expira
     protected RuntimeModule doBootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database, ExpirationConfiguration configuration) {
         ExpirationIndexer indexer = new LegacyIndexer(database, configuration);
         NodeDeleter deleter = new NodeDeleter(database, indexer);
+
+        if(config.containsKey("expirationProperty")) {
+            configuration.setExpirationProperty(config.get("expirationProperty"));
+        }
+        if(config.containsKey("expirationIndex")) {
+            configuration.setExpirationIndex(config.get("expirationIndex"));
+        }
+
         try {
             return new ExpirationIndexModule(moduleId,
                     indexer,
@@ -68,4 +76,5 @@ public class ExpirationBootstrapper extends BaseRuntimeModuleBootstrapper<Expira
                     new ManualExpirationStrategy(database, deleter));
         }
     }
+
 }

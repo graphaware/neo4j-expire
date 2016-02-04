@@ -26,8 +26,12 @@ import com.graphaware.runtime.policy.InclusionPoliciesFactory;
  */
 public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfiguration<ExpirationConfiguration> {
 
-    private static final String EXPIRATION_INDEX = "expirationIndex";
-    private static final String EXPIRATION_PROPERTY = "_expire";
+    private static final String DEFAULT_EXPIRATION_INDEX = "expirationIndex";
+    private static final String DEFAULT_EXPIRATION_PROPERTY = "_expire";
+
+    private String expirationIndex = DEFAULT_EXPIRATION_INDEX;
+    private String expirationProperty = DEFAULT_EXPIRATION_PROPERTY;
+
 
     public ExpirationConfiguration(InclusionPolicies inclusionPolicies, long initializeUntil, InstanceRolePolicy instanceRolePolicy) {
         super(inclusionPolicies, initializeUntil, instanceRolePolicy);
@@ -44,11 +48,19 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
     }
 
     public String getExpirationIndex() {
-        return EXPIRATION_INDEX;
+        return expirationIndex;
+    }
+
+    public void setExpirationIndex(String expirationIndex) {
+        this.expirationIndex = expirationIndex;
     }
 
     public String getExpirationProperty() {
-        return EXPIRATION_PROPERTY;
+        return expirationProperty;
+    }
+
+    public void setExpirationProperty(String expirationProperty) {
+        this.expirationProperty = expirationProperty;
     }
 
     /**
@@ -58,4 +70,6 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
     protected ExpirationConfiguration newInstance(InclusionPolicies inclusionPolicies, long initializeUntil, InstanceRolePolicy instanceRolePolicy) {
         return new ExpirationConfiguration(inclusionPolicies, initializeUntil, instanceRolePolicy);
     }
+
+
 }
