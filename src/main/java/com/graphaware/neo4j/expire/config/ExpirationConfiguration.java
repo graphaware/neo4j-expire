@@ -202,4 +202,57 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
     public ExpirationStrategy<Relationship> getRelationshipExpirationStrategy() {
         return relationshipExpirationStrategy;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        ExpirationConfiguration that = (ExpirationConfiguration) o;
+
+        if (nodeExpirationIndex != null ? !nodeExpirationIndex.equals(that.nodeExpirationIndex) : that.nodeExpirationIndex != null) {
+            return false;
+        }
+        if (relationshipExpirationIndex != null ? !relationshipExpirationIndex.equals(that.relationshipExpirationIndex) : that.relationshipExpirationIndex != null) {
+            return false;
+        }
+        if (nodeExpirationProperty != null ? !nodeExpirationProperty.equals(that.nodeExpirationProperty) : that.nodeExpirationProperty != null) {
+            return false;
+        }
+        if (relationshipExpirationProperty != null ? !relationshipExpirationProperty.equals(that.relationshipExpirationProperty) : that.relationshipExpirationProperty != null) {
+            return false;
+        }
+        if (nodeTtlProperty != null ? !nodeTtlProperty.equals(that.nodeTtlProperty) : that.nodeTtlProperty != null) {
+            return false;
+        }
+        if (relationshipTtlProperty != null ? !relationshipTtlProperty.equals(that.relationshipTtlProperty) : that.relationshipTtlProperty != null) {
+            return false;
+        }
+        if (nodeExpirationStrategy != null ? !nodeExpirationStrategy.equals(that.nodeExpirationStrategy) : that.nodeExpirationStrategy != null) {
+            return false;
+        }
+        return !(relationshipExpirationStrategy != null ? !relationshipExpirationStrategy.equals(that.relationshipExpirationStrategy) : that.relationshipExpirationStrategy != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (nodeExpirationIndex != null ? nodeExpirationIndex.hashCode() : 0);
+        result = 31 * result + (relationshipExpirationIndex != null ? relationshipExpirationIndex.hashCode() : 0);
+        result = 31 * result + (nodeExpirationProperty != null ? nodeExpirationProperty.hashCode() : 0);
+        result = 31 * result + (relationshipExpirationProperty != null ? relationshipExpirationProperty.hashCode() : 0);
+        result = 31 * result + (nodeTtlProperty != null ? nodeTtlProperty.hashCode() : 0);
+        result = 31 * result + (relationshipTtlProperty != null ? relationshipTtlProperty.hashCode() : 0);
+        result = 31 * result + (nodeExpirationStrategy != null ? nodeExpirationStrategy.hashCode() : 0);
+        result = 31 * result + (relationshipExpirationStrategy != null ? relationshipExpirationStrategy.hashCode() : 0);
+        return result;
+    }
 }
