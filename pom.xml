@@ -66,7 +66,7 @@
             <artifactId>server</artifactId>
         </dependency>
 
-        <dependency>
+        <dependency> <!-- todo we should move this to the framework -->
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
             <version>1.3</version>
