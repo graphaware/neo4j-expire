@@ -16,6 +16,9 @@
 
 package com.graphaware.neo4j.expire.config;
 
+import com.graphaware.common.policy.composite.CompositeNodeInclusionPolicy;
+import com.graphaware.common.policy.spel.SpelNodeInclusionPolicy;
+import com.graphaware.common.serialize.Serializer;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -27,6 +30,8 @@ public class ConfigEqualityTest {
     public void equalConfigShouldBeEqual() {
         assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl")));
         assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").withNodeExpirationIndex("bla").equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").withNodeExpirationIndex("bla")));
+        assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')"))).equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')")))));
+        assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')"))).equals(Serializer.fromByteArray(Serializer.toByteArray(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')")))))));
 
         assertFalse(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("different")));
         assertFalse(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").withRelationshipExpirationProperty("ttl")));

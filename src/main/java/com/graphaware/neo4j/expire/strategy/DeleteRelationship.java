@@ -16,12 +16,18 @@
 
 package com.graphaware.neo4j.expire.strategy;
 
+import com.graphaware.common.serialize.Serializer;
+import com.graphaware.common.serialize.SingletonSerializer;
 import org.neo4j.graphdb.Relationship;
 
 /**
  * Default {@link Relationship} {@link ExpirationStrategy} that simply deletes the expired {@link Relationship}.
  */
 public final class DeleteRelationship implements ExpirationStrategy<Relationship> {
+
+    static {
+        Serializer.register(DeleteRelationship.class, new SingletonSerializer());
+    }
 
     private static final DeleteRelationship INSTANCE = new DeleteRelationship();
 
