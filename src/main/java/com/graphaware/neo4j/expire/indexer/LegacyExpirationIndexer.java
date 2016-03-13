@@ -16,6 +16,7 @@
 
 package com.graphaware.neo4j.expire.indexer;
 
+import com.graphaware.common.util.PropertyContainerUtils;
 import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
@@ -24,6 +25,8 @@ import org.neo4j.index.lucene.QueryContext;
 import org.neo4j.index.lucene.ValueContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.graphaware.common.util.PropertyContainerUtils.*;
 
 /**
  * {@link ExpirationIndexer} that uses the legacy index of Neo4j.
@@ -152,7 +155,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
             try {
                 result = Long.parseLong(pc.getProperty(expirationProperty).toString());
             } catch (NumberFormatException e) {
-                LOG.warn("{} expiration property is non-numeric: {}", pc, pc.getProperty(expirationProperty));
+                LOG.warn("{} expiration property is non-numeric: {}", id(pc), pc.getProperty(expirationProperty));
             }
         }
 
@@ -161,7 +164,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
                 long newResult = System.currentTimeMillis() + Long.parseLong(pc.getProperty(ttlProperty).toString());
 
                 if (result != null) {
-                    LOG.warn("{} has both expiry date and a ttl.", pc);
+                    LOG.warn("{} has both expiry date and a ttl.", id(pc));
 
                     if (newResult > result) {
                         LOG.warn("Using ttl as it is later.");
@@ -174,7 +177,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
                     result = newResult;
                 }
             } catch (NumberFormatException e) {
-                LOG.warn("{} ttl property is non-numeric: {}", pc, pc.getProperty(ttlProperty));
+                LOG.warn("{} ttl property is non-numeric: {}", id(pc), pc.getProperty(ttlProperty));
             }
         }
 
