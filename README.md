@@ -44,17 +44,18 @@ dependency above to 2.3.2.37.2-SNAPSHOT.
 #### Note on Versioning Scheme
 
 The version number has two parts. The first four numbers indicate compatibility with Neo4j GraphAware Framework.
- The last number is the version of the Expire library. For example, version 2.3.2.27.1 is version 1 of the Expire library
- compatible with GraphAware Neo4j Framework 2.3.2.27.
+ The last number is the version of the Expire library. For example, version 2.3.2.37.1 is version 1 of the Expire library
+ compatible with GraphAware Neo4j Framework 2.3.2.37.
 
 Setup and Configuration
 --------------------
 
 ### Server Mode
 
-First, please make sure that the framework is configured by adding `org.neo4j.server.thirdparty_jaxrs_classes=com.graphaware.server=/graphaware` to `neo4j-server.properties`
+First, please make sure that the framework is configured by adding `org.neo4j.server.thirdparty_jaxrs_classes=com.graphaware.server=/graphaware` to `neo4j-server.properties`,
+as described <a href="https://github.com/graphaware/neo4j-framework#server-mode" target="_blank">here</a>.
 
-Then, edit neo4j.properties to register the Expire module:
+Then, edit `neo4j.properties` to register the Expire module:
 
 ```
 com.graphaware.runtime.enabled=true
@@ -62,22 +63,28 @@ com.graphaware.runtime.enabled=true
 #EM becomes the module ID (you will need to use this ID in other config below):
 com.graphaware.module.EM.1=com.graphaware.neo4j.expire.ExpirationModuleBootstrapper
 
-#If you want to delete nodes at a certain time, configure the node property (in this case "expire") that holds the expiration time in ms since epoch:
+#If you want to delete nodes at a certain time, configure the node property (in this case "expire")
+#that holds the expiration time in ms since epoch:
 com.graphaware.module.EM.nodeExpirationProperty=expire
 
-#Alternatively, if you want to delete nodes after some time has elapsed since they have been created, configure the node property (in this case "ttl") that holds the TTL in ms:
+#Alternatively, if you want to delete nodes after some time has elapsed since they have been created,
+#configure the node property (in this case "ttl") that holds the TTL in ms:
 com.graphaware.module.EM.nodeTtlProperty=ttl
 
-#If you want to delete relationships at a certain time, configure the relationships property (in this case "expire") that holds the expiration time in ms since epoch:
+#If you want to delete relationships at a certain time, configure the relationships property (in this case "expire")
+#that holds the expiration time in ms since epoch:
 com.graphaware.module.EM.relationshipExpirationProperty=expire
 
-#Alternatively, if you want to delete relationships after some time has elapsed since they have been created, configure the relationships property (in this case "ttl") that holds the TTL in ms:
+#Alternatively, if you want to delete relationships after some time has elapsed since they have been created,
+#configure the relationships property (in this case "ttl") that holds the TTL in ms:
 com.graphaware.module.EM.relationshipTtlProperty=ttl
 
-#If you want to delete expired nodes despite that fact they still have relationships, set the strategy to "force". This setting defaults to "orphan", which will only delete expired nodes with no relationships:
+#If you want to delete expired nodes despite that fact they still have relationships, set the strategy to "force".
+# This setting defaults to "orphan", which will only delete expired nodes with no relationships:
 com.graphaware.module.EM.nodeExpirationStrategy=force
 
-#Of course, nodes and relationships this module applies to can be limited by the use of SPeL, e.g.:
+#By default, all created/updated nodes and relationships are checked for the presence of expire/ttl property.
+#As with most GraphAware Modules, nodes and relationships this module applies to can be limited by the use of SPeL, e.g.:
 com.graphaware.module.EM.node=hasLabel('NodeThatExpiresAtSomePoint')
 com.graphaware.module.EM.relationship=isType('TEMPORARY_RELATIONSHIP')
 
@@ -108,18 +115,17 @@ Using GraphAware Expire
 
 Apart from the configuration described above, the GraphAware Expire module requires nothing else to function. It will
 delete nodes and relationships when they've reached their expiration date or TTL. In case both expiration date and TTL are
-set, the module takes into account whichever one is later. Please note that by default, nodes are only deleted if they have
-no relationship (i.e. all relationships have expired or have been manually deleted), unless the node expiration strategy is
-set to "force".
+set, the module takes into account whichever one is later. Please note a few more facts of interest:
 
-Please note that at least one of the following must be configured, otherwise it does not make sense to use the module:
- `nodeExpirationProperty`, `nodeTtlProperty`, `relationshipExpirationProperty`, `relationshipTtlProperty`.
+* by default, nodes are only deleted if they have no relationship (i.e. all relationships have expired or have been manually deleted), unless the node expiration strategy is set to "force".
+* when ttl property gets updated, the time-to-live is counted from the moment the node has been updated
+* one of the following must be configured, otherwise it does not make sense to use the module: `nodeExpirationProperty`, `nodeTtlProperty`, `relationshipExpirationProperty`, `relationshipTtlProperty`.
 
-How does it work?
------------------
+Advanced Config
+---------------
 
-Nodes and relationships, along with their expiration dates, are stored in a legacy index, completely transparently to the user.
-A GraphAware Framework Timer-Driven Runtime Module checks for expired nodes and relationships every time it is asked to
+Nodes and relationships, along with their expiration dates, are stored in Neo4j's <a href="http://neo4j.com/docs/stable/indexing.html" target="_blank">legacy index</a>, completely transparently to the user.
+A GraphAware Framework <a href="https://github.com/graphaware/neo4j-framework/tree/master/runtime#building-a-timer-driven-graphaware-runtime-module" target="_blank">Timer-Driven Runtime Module</a> checks for expired nodes and relationships every time it is asked to
 perform work, and deletes the ones that are found.
 
 Please note that the default setting for the Timer-Driven Runtime Module is and "adaptive" strategy that it slows down
