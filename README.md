@@ -52,10 +52,10 @@ Setup and Configuration
 
 ### Server Mode
 
-First, please make sure that the framework is configured by adding `org.neo4j.server.thirdparty_jaxrs_classes=com.graphaware.server=/graphaware` to `neo4j-server.properties`,
+First, please make sure that the framework is configured by adding `org.neo4j.server.thirdparty_jaxrs_classes=com.graphaware.server=/graphaware` to `conf/neo4j.conf`,
 as described <a href="https://github.com/graphaware/neo4j-framework#server-mode" target="_blank">here</a>.
 
-Then, edit `neo4j.properties` to register the Expire module:
+And add this configuration to register the Expire module:
 
 ```
 com.graphaware.runtime.enabled=true
