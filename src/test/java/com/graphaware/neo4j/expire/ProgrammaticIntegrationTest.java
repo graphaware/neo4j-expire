@@ -23,7 +23,7 @@ import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import com.graphaware.runtime.config.FluentRuntimeConfiguration;
 import com.graphaware.runtime.schedule.FixedDelayTimingStrategy;
-import com.graphaware.test.integration.DatabaseIntegrationTest;
+import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
@@ -35,7 +35,7 @@ import static com.graphaware.test.util.TestUtils.waitFor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-public class ProgrammaticIntegrationTest extends DatabaseIntegrationTest {
+public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest {
 
     private static final long SECOND = 1_000;
 

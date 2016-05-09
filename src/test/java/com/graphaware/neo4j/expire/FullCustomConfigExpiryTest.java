@@ -16,28 +16,21 @@
 
 package com.graphaware.neo4j.expire;
 
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.waitFor;
 import static org.junit.Assert.assertTrue;
 
-public class FullCustomConfigExpiryTest extends GraphAwareApiTest {
+public class FullCustomConfigExpiryTest extends GraphAwareIntegrationTest {
 
     private static final long SECOND = 1_000;
 
     @Override
-    protected String propertiesFile() {
-        try {
-            return new ClassPathResource("neo4j-expire-full-custom.properties").getFile().getAbsolutePath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    protected String configFile() {
+        return "neo4j-expire-full-custom.conf";
     }
 
     @Test

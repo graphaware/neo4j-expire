@@ -16,27 +16,20 @@
 
 package com.graphaware.neo4j.expire;
 
-import com.graphaware.test.integration.GraphAwareApiTest;
+import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
 
 import static com.graphaware.test.unit.GraphUnit.assertEmpty;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
 import static com.graphaware.test.util.TestUtils.waitFor;
 
-public class MinimalConfigExpiryTest extends GraphAwareApiTest {
+public class MinimalConfigExpiryTest extends GraphAwareIntegrationTest {
 
     private static final long SECOND = 1_000;
 
     @Override
-    protected String propertiesFile() {
-        try {
-            return new ClassPathResource("neo4j-expire-minimal.properties").getFile().getAbsolutePath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    protected String configFile() {
+        return "neo4j-expire-minimal.conf";
     }
 
     @Test
