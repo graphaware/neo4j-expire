@@ -52,7 +52,7 @@ Setup and Configuration
 
 ### Server Mode
 
-First, please make sure that the framework is configured by adding `org.neo4j.server.thirdparty_jaxrs_classes=com.graphaware.server=/graphaware` to `conf/neo4j.conf`,
+First, please make sure that the framework is configured by adding `dbms.thirdparty_jaxrs_classes=com.graphaware.server=/graphaware` to `conf/neo4j.conf`,
 as described <a href="https://github.com/graphaware/neo4j-framework#server-mode" target="_blank">here</a>.
 
 And add this configuration to register the Expire module:
@@ -104,7 +104,7 @@ To use the Expire module programmatically, register the module like this
 Alternatively:
 ```java
  GraphDatabaseService database = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(pathToDb)
-    .loadPropertiesFromFile(this.getClass().getClassLoader().getResource("neo4j.properties").getPath())
+    .loadPropertiesFromFile(this.getClass().getClassLoader().getResource("neo4j.conf").getPath())
     .newGraphDatabase();
 
  //make sure neo4j.properties contain the lines mentioned in previous section
