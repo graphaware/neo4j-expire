@@ -16,14 +16,14 @@
 
 package com.graphaware.neo4j.expire;
 
+import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
 import com.graphaware.neo4j.expire.strategy.DeleteNodeAndRelationships;
 import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
 import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
 import com.graphaware.runtime.module.RuntimeModule;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.neo4j.logging.Log;
 
 import java.util.Map;
 
@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class ExpirationModuleBootstrapper extends BaseRuntimeModuleBootstrapper<ExpirationConfiguration> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ExpirationModuleBootstrapper.class);
+    private static final Log LOG = LoggerFactory.getLogger(ExpirationModuleBootstrapper.class);
 
     private static final String NODE_EXPIRATION_INDEX = "nodeExpirationIndex";
     private static final String RELATIONSHIP_EXPIRATION_INDEX = "relationshipExpirationIndex";
@@ -60,50 +60,50 @@ public class ExpirationModuleBootstrapper extends BaseRuntimeModuleBootstrapper<
     protected RuntimeModule doBootstrapModule(String moduleId, Map<String, String> config, GraphDatabaseService database, ExpirationConfiguration configuration) {
         if (configExists(config, NODE_EXPIRATION_INDEX)) {
             String nodeExpirationIndex = config.get(NODE_EXPIRATION_INDEX);
-            LOG.info("Node expiration index set to {}", nodeExpirationIndex);
+            LOG.info("Node expiration index set to %s", nodeExpirationIndex);
             configuration = configuration.withNodeExpirationIndex(nodeExpirationIndex);
         }
 
         if (configExists(config, RELATIONSHIP_EXPIRATION_INDEX)) {
             String relationshipExpirationIndex = config.get(RELATIONSHIP_EXPIRATION_INDEX);
-            LOG.info("Relationship expiration index set to {}", relationshipExpirationIndex);
+            LOG.info("Relationship expiration index set to %s", relationshipExpirationIndex);
             configuration = configuration.withRelationshipExpirationIndex(relationshipExpirationIndex);
         }
 
         if (configExists(config, NODE_EXPIRATION_PROPERTY)) {
             String nodeExpirationProperty = config.get(NODE_EXPIRATION_PROPERTY);
-            LOG.info("Node expiration property set to {}", nodeExpirationProperty);
+            LOG.info("Node expiration property set to %s", nodeExpirationProperty);
             configuration = configuration.withNodeExpirationProperty(nodeExpirationProperty);
         }
 
         if (configExists(config, RELATIONSHIP_EXPIRATION_PROPERTY)) {
             String relationshipExpirationProperty = config.get(RELATIONSHIP_EXPIRATION_PROPERTY);
-            LOG.info("Relationship expiration property set to {}", relationshipExpirationProperty);
+            LOG.info("Relationship expiration property set to %s", relationshipExpirationProperty);
             configuration = configuration.withRelationshipExpirationProperty(relationshipExpirationProperty);
         }
 
         if (configExists(config, NODE_TTL_PROPERTY)) {
             String nodeTtlProperty = config.get(NODE_TTL_PROPERTY);
-            LOG.info("Node ttl property set to {}", nodeTtlProperty);
+            LOG.info("Node ttl property set to %s", nodeTtlProperty);
             configuration = configuration.withNodeTtlProperty(nodeTtlProperty);
         }
 
         if (configExists(config, RELATIONSHIP_TTL_PROPERTY)) {
             String relationshipTtlProperty = config.get(RELATIONSHIP_TTL_PROPERTY);
-            LOG.info("Relationship ttl property set to {}", relationshipTtlProperty);
+            LOG.info("Relationship ttl property set to %s", relationshipTtlProperty);
             configuration = configuration.withRelationshipTtlProperty(relationshipTtlProperty);
         }
 
         if (configExists(config, NODE_EXPIRATION_STRATEGY)) {
             String nodeExpirationStrategy = config.get(NODE_EXPIRATION_STRATEGY);
 
-            LOG.info("Node expiration strategy set to {}", nodeExpirationStrategy);
+            LOG.info("Node expiration strategy set to %s", nodeExpirationStrategy);
             if (FORCE_DELETE.equals(nodeExpirationStrategy)) {
                 configuration = configuration.withNodeExpirationStrategy(DeleteNodeAndRelationships.getInstance());
             } else if (ORPHAN_DELETE.endsWith(nodeExpirationStrategy)) {
                 configuration = configuration.withNodeExpirationStrategy(DeleteOrphanedNodeOnly.getInstance());
             } else {
-                LOG.error("Not a valid expiration strategy: {}", nodeExpirationStrategy);
+                LOG.error("Not a valid expiration strategy: %s", nodeExpirationStrategy);
                 throw new IllegalArgumentException("Not a valid expiration strategy.");
             }
         }

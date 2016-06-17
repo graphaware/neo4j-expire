@@ -16,6 +16,7 @@
 
 package com.graphaware.neo4j.expire;
 
+import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
 import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
 import com.graphaware.neo4j.expire.indexer.ExpirationIndexer;
@@ -36,8 +37,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.IndexHits;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.neo4j.logging.Log;
 
 /**
  * A {@link TxDrivenModule} and a {@link TimerDrivenModule} that allows for setting an expiry date or ttl on nodes
@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerDrivenModule {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ExpirationModule.class);
+    private static final Log LOG = LoggerFactory.getLogger(ExpirationModule.class);
 
     private final ExpirationIndexer indexer;
     private final ExpirationConfiguration config;

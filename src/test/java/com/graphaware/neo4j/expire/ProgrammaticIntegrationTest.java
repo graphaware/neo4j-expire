@@ -494,7 +494,7 @@ public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest
 
     private GraphAwareRuntime createRuntime() {
         return GraphAwareRuntimeFactory.createRuntime(getDatabase(),
-                FluentRuntimeConfiguration.defaultConfiguration()
+                FluentRuntimeConfiguration.defaultConfiguration(getDatabase())
                         .withTimingStrategy(FixedDelayTimingStrategy.getInstance().withInitialDelay(100).withDelay(100)));
     }
 
