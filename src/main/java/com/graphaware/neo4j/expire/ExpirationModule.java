@@ -50,7 +50,7 @@ public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerD
     private final ExpirationIndexer indexer;
     private final ExpirationConfiguration config;
 
-    protected ExpirationModule(String moduleId, GraphDatabaseService database, ExpirationConfiguration config) {
+    public ExpirationModule(String moduleId, GraphDatabaseService database, ExpirationConfiguration config) {
         super(moduleId);
 
         config.validate();
