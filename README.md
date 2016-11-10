@@ -20,7 +20,7 @@ into the `plugins` directory of your Neo4j installation. After changing a few li
 Java developers that use Neo4j in <a href="http://docs.neo4j.org/chunked/stable/tutorials-java-embedded.html" target="_blank">embedded mode</a>
 and those developing Neo4j <a href="http://docs.neo4j.org/chunked/stable/server-plugins.html" target="_blank">server plugins</a>,
 <a href="http://docs.neo4j.org/chunked/stable/server-unmanaged-extensions.html" target="_blank">unmanaged extensions</a>,
-GraphAware Runtime Modules, or Spring MVC Controllers can include use the Expire Module as a dependency for their Java project.
+GraphAware Runtime Modules, or Spring MVC Controllers can include the Expire Module as a dependency for their Java project.
 
 #### Releases
 
