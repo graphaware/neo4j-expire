@@ -69,7 +69,17 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
      * @param nodeExpirationStrategy         expiration strategy for nodes. Must not be <code>null</code>.
      * @param relationshipExpirationStrategy expiration strategy for relationships. Must not be <code>null</code>.
      */
-    private ExpirationConfiguration(InclusionPolicies inclusionPolicies, long initializeUntil, InstanceRolePolicy instanceRolePolicy, String nodeExpirationIndex, String relationshipExpirationIndex, String nodeExpirationProperty, String relationshipExpirationProperty, String nodeTtlProperty, String relationshipTtlProperty, ExpirationStrategy<Node> nodeExpirationStrategy, ExpirationStrategy<Relationship> relationshipExpirationStrategy) {
+    private ExpirationConfiguration(InclusionPolicies inclusionPolicies, long initializeUntil,
+                                    InstanceRolePolicy instanceRolePolicy,
+                                    String nodeExpirationIndex,
+                                    String relationshipExpirationIndex,
+                                    String nodeExpirationProperty,
+                                    String relationshipExpirationProperty,
+                                    String nodeTtlProperty,
+                                    String relationshipTtlProperty,
+                                    ExpirationStrategy<Node> nodeExpirationStrategy,
+                                    ExpirationStrategy<Relationship> relationshipExpirationStrategy) {
+
         super(inclusionPolicies, initializeUntil, instanceRolePolicy);
         this.nodeExpirationIndex = nodeExpirationIndex;
         this.relationshipExpirationIndex = relationshipExpirationIndex;
@@ -128,7 +138,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
      * {@link #DEFAULT_NODE_EXPIRATION_STRATEGY}, and {@link #DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY}.
      */
     public static ExpirationConfiguration defaultConfiguration() {
-        return new ExpirationConfiguration(InclusionPolicies.all(), ALWAYS, InstanceRolePolicy.ANY, DEFAULT_NODE_EXPIRATION_INDEX, DEFAULT_RELATIONSHIP_EXPIRATION_INDEX, DEFAULT_NODE_EXPIRATION_PROPERTY, DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY, DEFAULT_NODE_TTL_PROPERTY, DEFAULT_RELATIONSHIP_TTL_PROPERTY, DEFAULT_NODE_EXPIRATION_STRATEGY, DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY);
+        return new ExpirationConfiguration(InclusionPolicies.all(), ALWAYS, InstanceRolePolicy.MASTER_ONLY, DEFAULT_NODE_EXPIRATION_INDEX, DEFAULT_RELATIONSHIP_EXPIRATION_INDEX, DEFAULT_NODE_EXPIRATION_PROPERTY, DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY, DEFAULT_NODE_TTL_PROPERTY, DEFAULT_RELATIONSHIP_TTL_PROPERTY, DEFAULT_NODE_EXPIRATION_STRATEGY, DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY);
     }
 
     /**
