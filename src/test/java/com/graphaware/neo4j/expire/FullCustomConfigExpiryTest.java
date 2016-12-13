@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static com.graphaware.test.unit.GraphUnit.printGraph;
 import static com.graphaware.test.util.TestUtils.waitFor;
 import static org.junit.Assert.assertTrue;
 
@@ -36,22 +37,22 @@ public class FullCustomConfigExpiryTest extends GraphAwareIntegrationTest {
     @Test
     public void shouldExpireNodesAndRelationshipsWhenExpiryDateReached() {
         long now = System.currentTimeMillis();
-        long twoSecondsFromNow = now + 2 * SECOND;
-        long threeSecondsFromNow = now + 3 * SECOND;
+        long fiveSecondsFromNow = now + 5 * SECOND;
+        long sixSecondsFromNow = now + 6 * SECOND;
 
-        getDatabase().execute("CREATE (s1:State {name:'Cloudy', _expire:" + twoSecondsFromNow + "})-[:THEN]->(s2:NotAState {name:'Windy', _expire:" + threeSecondsFromNow + "})");
+        getDatabase().execute("CREATE (s1:State {name:'Cloudy', _expire:" + fiveSecondsFromNow + "})-[:THEN]->(s2:NotAState {name:'Windy', _expire:" + sixSecondsFromNow + "})");
 
-        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', _expire:" + twoSecondsFromNow + "})-[:THEN]->(s2:NotAState {name:'Windy', _expire:" + threeSecondsFromNow + "})");
+        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', _expire:" + fiveSecondsFromNow + "})-[:THEN]->(s2:NotAState {name:'Windy', _expire:" + sixSecondsFromNow + "})");
 
-        waitFor(2100 - (System.currentTimeMillis() - now));
+        waitFor(5100 - (System.currentTimeMillis() - now));
 
         //force deleted relationship
-        assertSameGraph(getDatabase(), "CREATE (s2:NotAState {name:'Windy', _expire:" + threeSecondsFromNow + "})");
+        assertSameGraph(getDatabase(), "CREATE (s2:NotAState {name:'Windy', _expire:" + sixSecondsFromNow + "})");
 
-        waitFor(3100 - (System.currentTimeMillis() - now));
+        waitFor(6100 - (System.currentTimeMillis() - now));
 
         //not deleted because of inclusion policies
-        assertSameGraph(getDatabase(), "CREATE (s2:NotAState {name:'Windy', _expire:" + threeSecondsFromNow + "})");
+        assertSameGraph(getDatabase(), "CREATE (s2:NotAState {name:'Windy', _expire:" + sixSecondsFromNow + "})");
 
         try (Transaction tx = getDatabase().beginTx()) {
             assertTrue(getDatabase().index().existsForNodes("nodeExp"));
