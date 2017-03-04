@@ -155,18 +155,29 @@ public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerD
     @Override
     public TimerDrivenModuleContext doSomeWork(TimerDrivenModuleContext timerDrivenModuleContext, GraphDatabaseService graphDatabaseService) {
         long now = System.currentTimeMillis();
+        int expired = 0;
 
         IndexHits<Relationship> relationshipsToExpire = indexer.relationshipsExpiringBefore(now);
         if (relationshipsToExpire != null) {
             for (Relationship relationship : relationshipsToExpire) {
-                config.getRelationshipExpirationStrategy().expire(relationship);
+                if (expired < config.getMaxNoExpirations()) {
+                    config.getRelationshipExpirationStrategy().expire(relationship);
+                    expired++;
+                } else {
+                    break;
+                }
             }
         }
 
         IndexHits<Node> nodesToExpire = indexer.nodesExpiringBefore(now);
         if (nodesToExpire != null) {
             for (Node node : nodesToExpire) {
-                config.getNodeExpirationStrategy().expire(node);
+                if (expired < config.getMaxNoExpirations()) {
+                    config.getNodeExpirationStrategy().expire(node);
+                    expired++;
+                } else {
+                    break;
+                }
             }
         }
 
