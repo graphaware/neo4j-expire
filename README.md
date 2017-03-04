@@ -88,6 +88,9 @@ com.graphaware.module.EM.nodeExpirationStrategy=force
 com.graphaware.module.EM.node=hasLabel('NodeThatExpiresAtSomePoint')
 com.graphaware.module.EM.relationship=isType('TEMPORARY_RELATIONSHIP')
 
+#Optionally, configure the maximum number of nodes/relationships deleted in one transaction. Defaults to 1000.
+com.graphaware.module.EM.maxExpirations=5000
+
 ```
 
 ### Embedded Mode / Java Development

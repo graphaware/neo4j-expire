@@ -42,6 +42,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
     private static final String DEFAULT_RELATIONSHIP_TTL_PROPERTY = null;
     private static final ExpirationStrategy<Node> DEFAULT_NODE_EXPIRATION_STRATEGY = DeleteOrphanedNodeOnly.getInstance();
     private static final ExpirationStrategy<Relationship> DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY = DeleteRelationship.getInstance();
+    private static final int DEFAULT_MAX_NO_EXPIRATIONS = 1000;
 
     private String nodeExpirationIndex;
     private String relationshipExpirationIndex;
@@ -51,6 +52,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
     private String relationshipTtlProperty;
     private ExpirationStrategy<Node> nodeExpirationStrategy;
     private ExpirationStrategy<Relationship> relationshipExpirationStrategy;
+    private int maxNoExpirations;
 
     /**
      * Construct a new configuration.
@@ -66,6 +68,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
      * @param relationshipExpirationProperty name of the relationship property that specifies the expiration date in ms since epoch. Can be <code>null</code>.
      * @param nodeTtlProperty                name of the node property that specifies the TTL in ms. Can be <code>null</code>.
      * @param relationshipTtlProperty        name of the relationship property that specifies the TTL in ms. Can be <code>null</code>.
+     * @param maxNoExpirations               maximum number of expired nodes or relationships in one go.
      * @param nodeExpirationStrategy         expiration strategy for nodes. Must not be <code>null</code>.
      * @param relationshipExpirationStrategy expiration strategy for relationships. Must not be <code>null</code>.
      */
@@ -77,6 +80,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
                                     String relationshipExpirationProperty,
                                     String nodeTtlProperty,
                                     String relationshipTtlProperty,
+                                    int maxNoExpirations,
                                     ExpirationStrategy<Node> nodeExpirationStrategy,
                                     ExpirationStrategy<Relationship> relationshipExpirationStrategy) {
 
@@ -87,6 +91,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
         this.relationshipExpirationProperty = relationshipExpirationProperty;
         this.nodeTtlProperty = nodeTtlProperty;
         this.relationshipTtlProperty = relationshipTtlProperty;
+        this.maxNoExpirations = maxNoExpirations;
         this.nodeExpirationStrategy = nodeExpirationStrategy;
         this.relationshipExpirationStrategy = relationshipExpirationStrategy;
     }
@@ -107,6 +112,10 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
 
         if (relationshipExpirationIndex != null && StringUtils.equals(relationshipTtlProperty, relationshipExpirationProperty)) {
             throw new IllegalStateException("Relationship TTL and expiration property are not allowed to be the same!");
+        }
+
+        if (maxNoExpirations < 0) {
+            throw new IllegalStateException("Max number of expirations must be at least 0 (ideally > 0)!");
         }
     }
 
@@ -138,7 +147,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
      * {@link #DEFAULT_NODE_EXPIRATION_STRATEGY}, and {@link #DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY}.
      */
     public static ExpirationConfiguration defaultConfiguration() {
-        return new ExpirationConfiguration(InclusionPolicies.all(), ALWAYS, InstanceRolePolicy.MASTER_ONLY, DEFAULT_NODE_EXPIRATION_INDEX, DEFAULT_RELATIONSHIP_EXPIRATION_INDEX, DEFAULT_NODE_EXPIRATION_PROPERTY, DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY, DEFAULT_NODE_TTL_PROPERTY, DEFAULT_RELATIONSHIP_TTL_PROPERTY, DEFAULT_NODE_EXPIRATION_STRATEGY, DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY);
+        return new ExpirationConfiguration(InclusionPolicies.all(), ALWAYS, InstanceRolePolicy.MASTER_ONLY, DEFAULT_NODE_EXPIRATION_INDEX, DEFAULT_RELATIONSHIP_EXPIRATION_INDEX, DEFAULT_NODE_EXPIRATION_PROPERTY, DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY, DEFAULT_NODE_TTL_PROPERTY, DEFAULT_RELATIONSHIP_TTL_PROPERTY, DEFAULT_MAX_NO_EXPIRATIONS, DEFAULT_NODE_EXPIRATION_STRATEGY, DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY);
     }
 
     /**
@@ -146,39 +155,43 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
      */
     @Override
     protected ExpirationConfiguration newInstance(InclusionPolicies inclusionPolicies, long initializeUntil, InstanceRolePolicy instanceRolePolicy) {
-        return new ExpirationConfiguration(inclusionPolicies, initializeUntil, instanceRolePolicy, getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(inclusionPolicies, initializeUntil, instanceRolePolicy, getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withNodeExpirationIndex(String nodeExpirationIndex) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), nodeExpirationIndex, getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), nodeExpirationIndex, getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withRelationshipExpirationIndex(String relationshipExpirationIndex) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), relationshipExpirationIndex, getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), relationshipExpirationIndex, getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withNodeExpirationProperty(String nodeExpirationProperty) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), nodeExpirationProperty, getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), nodeExpirationProperty, getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withRelationshipExpirationProperty(String relationshipExpirationProperty) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), relationshipExpirationProperty, getNodeTtlProperty(), getRelationshipTtlProperty(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), relationshipExpirationProperty, getNodeTtlProperty(), getRelationshipTtlProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withNodeTtlProperty(String nodeTtlProperty) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), nodeTtlProperty, getRelationshipTtlProperty(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), nodeTtlProperty, getRelationshipTtlProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withRelationshipTtlProperty(String relationshipTtlProperty) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), relationshipTtlProperty, getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), relationshipTtlProperty, getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withNodeExpirationStrategy(ExpirationStrategy<Node> nodeExpirationStrategy) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), nodeExpirationStrategy, getRelationshipExpirationStrategy());
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getMaxNoExpirations(), nodeExpirationStrategy, getRelationshipExpirationStrategy());
     }
 
     public ExpirationConfiguration withRelationshipExpirationStrategy(ExpirationStrategy<Relationship> relationshipExpirationStrategy) {
-        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getNodeExpirationStrategy(), relationshipExpirationStrategy);
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), relationshipExpirationStrategy);
+    }
+
+    public ExpirationConfiguration withMaxNoExpirations(int maxNoExpirations) {
+        return new ExpirationConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), maxNoExpirations, getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
     }
 
     public String getNodeExpirationIndex() {
@@ -211,6 +224,10 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
 
     public ExpirationStrategy<Relationship> getRelationshipExpirationStrategy() {
         return relationshipExpirationStrategy;
+    }
+
+    public int getMaxNoExpirations() {
+        return maxNoExpirations;
     }
 
     @Override
@@ -248,6 +265,9 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
         if (nodeExpirationStrategy != null ? !nodeExpirationStrategy.equals(that.nodeExpirationStrategy) : that.nodeExpirationStrategy != null) {
             return false;
         }
+        if (maxNoExpirations != that.maxNoExpirations) {
+            return false;
+        }
         return !(relationshipExpirationStrategy != null ? !relationshipExpirationStrategy.equals(that.relationshipExpirationStrategy) : that.relationshipExpirationStrategy != null);
 
     }
@@ -263,6 +283,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
         result = 31 * result + (relationshipTtlProperty != null ? relationshipTtlProperty.hashCode() : 0);
         result = 31 * result + (nodeExpirationStrategy != null ? nodeExpirationStrategy.hashCode() : 0);
         result = 31 * result + (relationshipExpirationStrategy != null ? relationshipExpirationStrategy.hashCode() : 0);
+        result = 31 * result + maxNoExpirations;
         return result;
     }
 }

@@ -16,6 +16,7 @@
 
 package com.graphaware.neo4j.expire;
 
+import com.graphaware.common.util.IterableUtils;
 import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
 import com.graphaware.neo4j.expire.strategy.DeleteNodeAndRelationships;
 import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
@@ -452,6 +453,52 @@ public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest
         assertEmpty(getDatabase());
     }
 
+    @Test
+    public void shouldExpireAllNodesInOneGo() {
+        bootstrap(ExpirationConfiguration.defaultConfiguration().withNodeExpirationProperty("expire").withMaxNoExpirations(100));
+
+        long now = System.currentTimeMillis();
+        long twoSecondsFromNow = now + 2 * SECOND;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (int i = 0; i < 100; i++) {
+                getDatabase().execute("CREATE (s1:State {name:'Cloudy" + i + "', expire:" + twoSecondsFromNow + "})");
+            }
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(100, IterableUtils.countNodes(getDatabase()));
+        }
+
+        waitFor(3100 - (System.currentTimeMillis() - now));
+
+        assertEmpty(getDatabase());
+    }
+
+    @Test
+    public void shouldExpireAllNodesOneByOne() {
+        bootstrap(ExpirationConfiguration.defaultConfiguration().withNodeExpirationProperty("expire").withMaxNoExpirations(1));
+
+        long now = System.currentTimeMillis();
+        long twoSecondsFromNow = now + 2 * SECOND;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (int i = 0; i < 100; i++) {
+                getDatabase().execute("CREATE (s1:State {name:'Cloudy" + i + "', expire:" + twoSecondsFromNow + "})");
+            }
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(100, IterableUtils.countNodes(getDatabase()));
+        }
+
+        waitFor(20100 - (System.currentTimeMillis() - now));
+
+        assertEmpty(getDatabase());
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldFailToStartWithInvalidConfig() {
         bootstrap(ExpirationConfiguration.defaultConfiguration());
@@ -469,18 +516,25 @@ public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest
     @Test(expected = IllegalStateException.class)
     public void shouldFailToStartWithInvalidConfig3() {
         bootstrap(ExpirationConfiguration.defaultConfiguration()
-                        .withNodeTtlProperty("ttl")
-                        .withRelationshipTtlProperty("ttl")
-                        .withNodeExpirationProperty("ttl")
+                .withNodeTtlProperty("ttl")
+                .withRelationshipTtlProperty("ttl")
+                .withNodeExpirationProperty("ttl")
         );
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldFailToStartWithInvalidConfig4() {
         bootstrap(ExpirationConfiguration.defaultConfiguration()
-                        .withNodeTtlProperty("ttl")
-                        .withRelationshipTtlProperty("ttl")
-                        .withRelationshipExpirationProperty("ttl")
+                .withNodeTtlProperty("ttl")
+                .withRelationshipTtlProperty("ttl")
+                .withRelationshipExpirationProperty("ttl")
+        );
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void shouldFailToStartWithInvalidConfig5() {
+        bootstrap(ExpirationConfiguration.defaultConfiguration()
+                .withMaxNoExpirations(-1)
         );
     }
 

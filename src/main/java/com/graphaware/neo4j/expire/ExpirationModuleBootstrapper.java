@@ -41,6 +41,7 @@ public class ExpirationModuleBootstrapper extends BaseRuntimeModuleBootstrapper<
     private static final String NODE_TTL_PROPERTY = "nodeTtlProperty";
     private static final String RELATIONSHIP_TTL_PROPERTY = "relationshipTtlProperty";
     private static final String NODE_EXPIRATION_STRATEGY = "nodeExpirationStrategy";
+    private static final String MAX_NO_EXPIRATIONS = "maxExpirations";
 
     private static final String FORCE_DELETE = "force";
     private static final String ORPHAN_DELETE = "orphan";
@@ -106,6 +107,12 @@ public class ExpirationModuleBootstrapper extends BaseRuntimeModuleBootstrapper<
                 LOG.error("Not a valid expiration strategy: %s", nodeExpirationStrategy);
                 throw new IllegalArgumentException("Not a valid expiration strategy.");
             }
+        }
+
+        if (configExists(config, MAX_NO_EXPIRATIONS)) {
+            String maxNoExpirations = config.get(MAX_NO_EXPIRATIONS);
+            LOG.info("Max number of expirations set to %s", maxNoExpirations);
+            configuration = configuration.withMaxNoExpirations(Integer.valueOf(maxNoExpirations));
         }
 
         return new ExpirationModule(moduleId, database, configuration);
