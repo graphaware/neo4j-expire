@@ -16,7 +16,9 @@
 
 package com.graphaware.neo4j.expire.config;
 
-import com.graphaware.common.policy.InclusionPolicies;
+import com.graphaware.common.policy.inclusion.InclusionPolicies;
+import com.graphaware.common.policy.role.InstanceRolePolicy;
+import com.graphaware.common.policy.role.WritableRole;
 import com.graphaware.neo4j.expire.ExpirationModule;
 import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
 import com.graphaware.neo4j.expire.strategy.DeleteRelationship;
@@ -141,13 +143,13 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
 
     /**
      * Create a default configuration with inclusion policies = {@link InclusionPoliciesFactory#allBusiness()},
-     * initialize until = {@link #ALWAYS}, instance role policy = {@link com.graphaware.runtime.config.TimerDrivenModuleConfiguration.InstanceRolePolicy#ANY},
+     * initialize until = {@link #ALWAYS}, instance role policy = {@link WritableRole},
      * and {@link #DEFAULT_NODE_EXPIRATION_INDEX}, {@link #DEFAULT_RELATIONSHIP_EXPIRATION_INDEX},{@link #DEFAULT_NODE_EXPIRATION_PROPERTY},
      * {@link #DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY},{@link #DEFAULT_NODE_TTL_PROPERTY}, {@link #DEFAULT_RELATIONSHIP_TTL_PROPERTY},
      * {@link #DEFAULT_NODE_EXPIRATION_STRATEGY}, and {@link #DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY}.
      */
     public static ExpirationConfiguration defaultConfiguration() {
-        return new ExpirationConfiguration(InclusionPolicies.all(), ALWAYS, InstanceRolePolicy.MASTER_ONLY, DEFAULT_NODE_EXPIRATION_INDEX, DEFAULT_RELATIONSHIP_EXPIRATION_INDEX, DEFAULT_NODE_EXPIRATION_PROPERTY, DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY, DEFAULT_NODE_TTL_PROPERTY, DEFAULT_RELATIONSHIP_TTL_PROPERTY, DEFAULT_MAX_NO_EXPIRATIONS, DEFAULT_NODE_EXPIRATION_STRATEGY, DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY);
+        return new ExpirationConfiguration(InclusionPolicies.all(), ALWAYS, WritableRole.getInstance(), DEFAULT_NODE_EXPIRATION_INDEX, DEFAULT_RELATIONSHIP_EXPIRATION_INDEX, DEFAULT_NODE_EXPIRATION_PROPERTY, DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY, DEFAULT_NODE_TTL_PROPERTY, DEFAULT_RELATIONSHIP_TTL_PROPERTY, DEFAULT_MAX_NO_EXPIRATIONS, DEFAULT_NODE_EXPIRATION_STRATEGY, DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY);
     }
 
     /**

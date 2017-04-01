@@ -16,8 +16,8 @@
 
 package com.graphaware.neo4j.expire.config;
 
-import com.graphaware.common.policy.composite.CompositeNodeInclusionPolicy;
-import com.graphaware.common.policy.spel.SpelNodeInclusionPolicy;
+import com.graphaware.common.policy.inclusion.composite.CompositeNodeInclusionPolicy;
+import com.graphaware.common.policy.inclusion.spel.SpelNodeInclusionPolicy;
 import com.graphaware.common.serialize.Serializer;
 import org.junit.Test;
 
