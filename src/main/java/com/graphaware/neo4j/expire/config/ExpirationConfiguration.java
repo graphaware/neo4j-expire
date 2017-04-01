@@ -17,8 +17,9 @@
 package com.graphaware.neo4j.expire.config;
 
 import com.graphaware.common.policy.inclusion.InclusionPolicies;
-import com.graphaware.common.policy.role.InstanceRolePolicy;
-import com.graphaware.common.policy.role.WritableRole;
+import com.graphaware.common.policy.role.*;
+import com.graphaware.common.serialize.Serializer;
+import com.graphaware.common.serialize.SingletonSerializer;
 import com.graphaware.neo4j.expire.ExpirationModule;
 import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
 import com.graphaware.neo4j.expire.strategy.DeleteRelationship;
@@ -35,6 +36,14 @@ import org.springframework.util.Assert;
  * {@link BaseTxAndTimerDrivenModuleConfiguration} for {@link ExpirationModule}.
  */
 public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfiguration<ExpirationConfiguration> {
+
+    //todo remove this when upgraded to newest framework
+    static {
+        Serializer.register(AnyRole.class, new SingletonSerializer());
+        Serializer.register(MasterOnly.class, new SingletonSerializer());
+        Serializer.register(SlavesOnly.class, new SingletonSerializer());
+        Serializer.register(WritableRole.class, new SingletonSerializer());
+    }
 
     private static final String DEFAULT_NODE_EXPIRATION_INDEX = "nodeExpirationIndex";
     private static final String DEFAULT_RELATIONSHIP_EXPIRATION_INDEX = "relationshipExpirationIndex";
