@@ -17,9 +17,8 @@
 package com.graphaware.neo4j.expire.config;
 
 import com.graphaware.common.policy.inclusion.InclusionPolicies;
-import com.graphaware.common.policy.role.*;
-import com.graphaware.common.serialize.Serializer;
-import com.graphaware.common.serialize.SingletonSerializer;
+import com.graphaware.common.policy.role.InstanceRolePolicy;
+import com.graphaware.common.policy.role.WritableRole;
 import com.graphaware.neo4j.expire.ExpirationModule;
 import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
 import com.graphaware.neo4j.expire.strategy.DeleteRelationship;
