@@ -37,14 +37,6 @@ import org.springframework.util.Assert;
  */
 public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfiguration<ExpirationConfiguration> {
 
-    //todo remove this when upgraded to newest framework
-    static {
-        Serializer.register(AnyRole.class, new SingletonSerializer());
-        Serializer.register(MasterOnly.class, new SingletonSerializer());
-        Serializer.register(SlavesOnly.class, new SingletonSerializer());
-        Serializer.register(WritableRole.class, new SingletonSerializer());
-    }
-
     private static final String DEFAULT_NODE_EXPIRATION_INDEX = "nodeExpirationIndex";
     private static final String DEFAULT_RELATIONSHIP_EXPIRATION_INDEX = "relationshipExpirationIndex";
     private static final String DEFAULT_NODE_EXPIRATION_PROPERTY = null;
