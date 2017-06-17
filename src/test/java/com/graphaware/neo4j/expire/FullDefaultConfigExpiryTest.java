@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import static com.graphaware.test.unit.GraphUnit.assertEmpty;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static com.graphaware.test.unit.GraphUnit.printGraph;
 import static com.graphaware.test.util.TestUtils.waitFor;
 
 public class FullDefaultConfigExpiryTest extends GraphAwareIntegrationTest {
@@ -34,6 +35,9 @@ public class FullDefaultConfigExpiryTest extends GraphAwareIntegrationTest {
 
     @Test
     public void shouldExpireNodesAndRelationshipsWhenExpiryDateReached() {
+        getDatabase().execute("CREATE (w:Warmup)");
+        getDatabase().execute("MATCH (n) DETACH DELETE n");
+
         long now = System.currentTimeMillis();
         long twoSecondsFromNow = now + 2 * SECOND;
         long threeSecondsFromNow = now + 3 * SECOND;
