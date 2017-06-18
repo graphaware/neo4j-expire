@@ -36,6 +36,9 @@ public class FullCustomConfigExpiryTest extends GraphAwareIntegrationTest {
 
     @Test
     public void shouldExpireNodesAndRelationshipsWhenExpiryDateReached() {
+        getDatabase().execute("CREATE (w:Warmup)");
+        getDatabase().execute("MATCH (n) DETACH DELETE n");
+
         long now = System.currentTimeMillis();
         long fiveSecondsFromNow = now + 5 * SECOND;
         long sixSecondsFromNow = now + 6 * SECOND;
