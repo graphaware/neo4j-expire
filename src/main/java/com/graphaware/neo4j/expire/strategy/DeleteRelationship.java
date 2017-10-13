@@ -16,6 +16,9 @@
 
 package com.graphaware.neo4j.expire.strategy;
 
+import java.util.Collections;
+import java.util.Map;
+
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.common.serialize.SingletonSerializer;
 import org.neo4j.graphdb.Relationship;
@@ -23,26 +26,29 @@ import org.neo4j.graphdb.Relationship;
 /**
  * Default {@link Relationship} {@link ExpirationStrategy} that simply deletes the expired {@link Relationship}.
  */
-public final class DeleteRelationship implements ExpirationStrategy<Relationship> {
+public final class DeleteRelationship extends ExpirationStrategy<Relationship> {
 
-    static {
-        Serializer.register(DeleteRelationship.class, new SingletonSerializer());
-    }
+	static {
+		Serializer.register(DeleteRelationship.class, new SingletonSerializer());
+	}
 
-    private static final DeleteRelationship INSTANCE = new DeleteRelationship();
+	private static final DeleteRelationship INSTANCE = new DeleteRelationship(Collections.emptyMap());
 
-    public static DeleteRelationship getInstance() {
-        return INSTANCE;
-    }
+	public static DeleteRelationship getInstance() {
+		return INSTANCE;
+	}
 
-    private DeleteRelationship() {
-    }
+	private DeleteRelationship(Map<String, String> config) {
+		super(config);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void expire(Relationship relationship) {
-        relationship.delete();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean expireIfNeeded(Relationship relationship) {
+		relationship.delete();
+		return true;
+	}
+
 }

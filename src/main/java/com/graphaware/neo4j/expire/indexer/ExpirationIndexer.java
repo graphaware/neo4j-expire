@@ -47,7 +47,7 @@ public interface ExpirationIndexer {
      * @param timestamp The timestamp to query for, given as milliseconds since epoch.
      * @return Iterable of all nodes expiring before timestamp.
      */
-    IndexHits<Node> nodesExpiringBefore(long timestamp);
+    IndexHits<Node> candidateNodesExpiringBefore(long timestamp);
 
     /**
      * Finds all indexed relationships that expire before a particular time.
@@ -55,7 +55,7 @@ public interface ExpirationIndexer {
      * @param timestamp The timestamp to query for, given as milliseconds since epoch.
      * @return Iterable of all relationships expiring before timestamp.
      */
-    IndexHits<Relationship> relationshipsExpiringBefore(long timestamp);
+    IndexHits<Relationship> candidateRelsExpiringBefore(long timestamp);
 
     /**
      * Removes node from expiration index. If node is not in the index, it does nothing.

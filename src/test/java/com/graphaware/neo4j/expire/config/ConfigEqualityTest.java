@@ -31,6 +31,7 @@ public class ConfigEqualityTest {
         assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl")));
         assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").withNodeExpirationIndex("bla").equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").withNodeExpirationIndex("bla")));
         assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')"))).equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')")))));
+
         assertTrue(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')"))).equals(Serializer.fromByteArray(Serializer.toByteArray(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").with(CompositeNodeInclusionPolicy.of(new SpelNodeInclusionPolicy("hasLabel('Test')")))))));
 
         assertFalse(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("ttl").equals(ExpirationConfiguration.defaultConfiguration().withNodeTtlProperty("different")));

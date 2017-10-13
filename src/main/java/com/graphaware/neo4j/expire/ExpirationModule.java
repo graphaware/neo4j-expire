@@ -21,6 +21,7 @@ import com.graphaware.common.util.Change;
 import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
 import com.graphaware.neo4j.expire.indexer.ExpirationIndexer;
 import com.graphaware.neo4j.expire.indexer.LegacyExpirationIndexer;
+import com.graphaware.neo4j.expire.strategy.ExpirationStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.metadata.EmptyContext;
 import com.graphaware.runtime.metadata.TimerDrivenModuleContext;
@@ -45,142 +46,159 @@ import org.neo4j.logging.Log;
  */
 public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerDrivenModule {
 
-    private static final Log LOG = LoggerFactory.getLogger(ExpirationModule.class);
+	private static final Log LOG = LoggerFactory.getLogger(ExpirationModule.class);
 
-    private final ExpirationIndexer indexer;
-    private final ExpirationConfiguration config;
+	private final ExpirationIndexer indexer;
+	private final ExpirationConfiguration config;
 
-    public ExpirationModule(String moduleId, GraphDatabaseService database, ExpirationConfiguration config) {
-        super(moduleId);
+	public ExpirationModule(String moduleId, GraphDatabaseService database, ExpirationConfiguration config) {
+		super(moduleId);
 
-        config.validate();
+		config.validate();
 
-        this.indexer = new LegacyExpirationIndexer(database, config);
-        this.config = config;
-    }
+		this.indexer = new LegacyExpirationIndexer(database, config);
+		this.config = config;
+	}
 
-    @Override
-    public Void beforeCommit(ImprovedTransactionData td) throws DeliberateTransactionRollbackException {
-        for (Node node : td.getAllCreatedNodes()) {
-            indexer.indexNode(node);
-        }
+	@Override
+	public Void beforeCommit(ImprovedTransactionData td) throws DeliberateTransactionRollbackException {
+		for (Node node : td.getAllCreatedNodes()) {
+			indexer.indexNode(node);
+		}
 
-        for (Relationship relationship : td.getAllCreatedRelationships()) {
-            indexer.indexRelationship(relationship);
-        }
+		for (Relationship relationship : td.getAllCreatedRelationships()) {
+			indexer.indexRelationship(relationship);
+		}
 
-        for (Change<Node> change : td.getAllChangedNodes()) {
-            Node current = change.getCurrent();
-            String expProp = config.getNodeExpirationProperty();
-            String ttlProp = config.getNodeTtlProperty();
+		for (Change<Node> change : td.getAllChangedNodes()) {
+			Node current = change.getCurrent();
+			String expProp = config.getNodeExpirationProperty();
+			String ttlProp = config.getNodeTtlProperty();
 
-            if (td.hasPropertyBeenCreated(current, expProp)
-                    || td.hasPropertyBeenCreated(current, ttlProp)
-                    || td.hasPropertyBeenChanged(current, expProp)
-                    || td.hasPropertyBeenChanged(current, ttlProp)
-                    || td.hasPropertyBeenDeleted(current, expProp)
-                    || td.hasPropertyBeenDeleted(current, ttlProp)) {
+			if (td.hasPropertyBeenCreated(current, expProp)
+					|| td.hasPropertyBeenCreated(current, ttlProp)
+					|| td.hasPropertyBeenChanged(current, expProp)
+					|| td.hasPropertyBeenChanged(current, ttlProp)
+					|| td.hasPropertyBeenDeleted(current, expProp)
+					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
 
-                indexer.removeNode(change.getPrevious());
-                indexer.indexNode(current);
-            }
-        }
+				indexer.removeNode(change.getPrevious());
+				indexer.indexNode(current);
+			}
+		}
 
-        for (Change<Relationship> change : td.getAllChangedRelationships()) {
-            Relationship current = change.getCurrent();
-            String expProp = config.getRelationshipExpirationProperty();
-            String ttlProp = config.getRelationshipTtlProperty();
+		for (Change<Relationship> change : td.getAllChangedRelationships()) {
+			Relationship current = change.getCurrent();
+			String expProp = config.getRelationshipExpirationProperty();
+			String ttlProp = config.getRelationshipTtlProperty();
 
-            if (td.hasPropertyBeenCreated(current, expProp)
-                    || td.hasPropertyBeenCreated(current, ttlProp)
-                    || td.hasPropertyBeenChanged(current, expProp)
-                    || td.hasPropertyBeenChanged(current, ttlProp)
-                    || td.hasPropertyBeenDeleted(current, expProp)
-                    || td.hasPropertyBeenDeleted(current, ttlProp)) {
+			if (td.hasPropertyBeenCreated(current, expProp)
+					|| td.hasPropertyBeenCreated(current, ttlProp)
+					|| td.hasPropertyBeenChanged(current, expProp)
+					|| td.hasPropertyBeenChanged(current, ttlProp)
+					|| td.hasPropertyBeenDeleted(current, expProp)
+					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
 
-                indexer.removeRelationship(change.getPrevious());
-                indexer.indexRelationship(current);
-            }
-        }
+				indexer.removeRelationship(change.getPrevious());
+				indexer.indexRelationship(current);
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public void initialize(GraphDatabaseService database) {
-        int batchSize = 1000;
+	@Override
+	public void initialize(GraphDatabaseService database) {
+		int batchSize = 1000;
 
-        if (config.getRelationshipExpirationIndex() != null) {
-            LOG.info("Looking at all relationships to see if they have an expiry date or TTL...");
+		if (config.getRelationshipExpirationIndex() != null) {
+			LOG.info("Looking at all relationships to see if they have an expiry date or TTL...");
 
-            new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllRelationships(database, batchSize), new UnitOfWork<Relationship>() {
-                @Override
-                public void execute(GraphDatabaseService database, Relationship r, int batchNumber, int stepNumber) {
-                    indexer.indexRelationship(r);
-                }
-            }).execute();
-        }
+			new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllRelationships(database, batchSize), new UnitOfWork<Relationship>() {
+				@Override
+				public void execute(GraphDatabaseService database, Relationship r, int batchNumber, int stepNumber) {
+					indexer.indexRelationship(r);
+				}
+			}).execute();
+		}
 
-        if (config.getNodeExpirationIndex() != null) {
-            LOG.info("Looking at all nodes to see if they have an expiry date or TTL...");
+		if (config.getNodeExpirationIndex() != null) {
+			LOG.info("Looking at all nodes to see if they have an expiry date or TTL...");
 
-            new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllNodes(database, batchSize), new UnitOfWork<Node>() {
-                @Override
-                public void execute(GraphDatabaseService database, Node n, int batchNumber, int stepNumber) {
-                    indexer.indexNode(n);
-                }
-            }).execute();
-        }
-    }
+			new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllNodes(database, batchSize), new UnitOfWork<Node>() {
+				@Override
+				public void execute(GraphDatabaseService database, Node n, int batchNumber, int stepNumber) {
+					indexer.indexNode(n);
+				}
+			}).execute();
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public BaseTxAndTimerDrivenModuleConfiguration getConfiguration() {
-        return config;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public BaseTxAndTimerDrivenModuleConfiguration getConfiguration() {
+		return config;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TimerDrivenModuleContext createInitialContext(GraphDatabaseService graphDatabaseService) {
-        return new EmptyContext();
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public TimerDrivenModuleContext createInitialContext(GraphDatabaseService graphDatabaseService) {
+		return new EmptyContext();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TimerDrivenModuleContext doSomeWork(TimerDrivenModuleContext timerDrivenModuleContext, GraphDatabaseService graphDatabaseService) {
-        long now = System.currentTimeMillis();
-        int expired = 0;
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public TimerDrivenModuleContext doSomeWork(TimerDrivenModuleContext timerDrivenModuleContext, GraphDatabaseService graphDatabaseService) {
+		long now = System.currentTimeMillis();
 
-        IndexHits<Relationship> relationshipsToExpire = indexer.relationshipsExpiringBefore(now);
-        if (relationshipsToExpire != null) {
-            for (Relationship relationship : relationshipsToExpire) {
-                if (expired < config.getMaxNoExpirations()) {
-                    config.getRelationshipExpirationStrategy().expire(relationship);
-                    expired++;
-                } else {
-                    break;
-                }
-            }
-        }
+		expireRelationships(now);
+		expireNodes(now);
 
-        IndexHits<Node> nodesToExpire = indexer.nodesExpiringBefore(now);
-        if (nodesToExpire != null) {
-            for (Node node : nodesToExpire) {
-                if (expired < config.getMaxNoExpirations()) {
-                    config.getNodeExpirationStrategy().expire(node);
-                    expired++;
-                } else {
-                    break;
-                }
-            }
-        }
+		return new EmptyContext();
+	}
 
-        return new EmptyContext();
-    }
+	private void expireRelationships(long now) {
+		int expired = 0;
+		IndexHits<Relationship> relationshipsToExpire = indexer.candidateRelsExpiringBefore(now);
+		if (relationshipsToExpire != null) {
+			for (Relationship relationship : relationshipsToExpire) {
+				if (expired < config.getMaxNoExpirations()) {
+					ExpirationStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
+					boolean didExpire = strategy.expireIfNeeded(relationship);
+					if (didExpire && strategy.removesFromIndex()) {
+						indexer.removeRelationship(relationship);
+					}
+					expired++;
+				} else {
+					break;
+				}
+			 }
+		}
+	}
+
+	private void expireNodes(long now) {
+		int expired = 0;
+		IndexHits<Node> nodesToExpire = indexer.candidateNodesExpiringBefore(now);
+		if (nodesToExpire != null) {
+			for (Node node : nodesToExpire) {
+				if (expired < config.getMaxNoExpirations()) {
+					ExpirationStrategy<Node> strategy = config.getNodeExpirationStrategy();
+					boolean didExpire = strategy.expireIfNeeded(node);
+					if (didExpire && strategy.removesFromIndex()) {
+						indexer.removeNode(node);
+					}
+					expired++;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
 }

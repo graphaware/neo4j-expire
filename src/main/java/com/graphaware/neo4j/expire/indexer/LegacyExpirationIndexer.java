@@ -71,7 +71,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
      * {@inheritDoc}
      */
     @Override
-    public IndexHits<Node> nodesExpiringBefore(long timestamp) {
+    public IndexHits<Node> candidateNodesExpiringBefore(long timestamp) {
         if (configuration.getNodeExpirationIndex() == null) {
             return null;
         }
@@ -91,7 +91,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
      * {@inheritDoc}
      */
     @Override
-    public IndexHits<Relationship> relationshipsExpiringBefore(long timestamp) {
+    public IndexHits<Relationship> candidateRelsExpiringBefore(long timestamp) {
         if (configuration.getRelationshipExpirationIndex() == null) {
             return null;
         }

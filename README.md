@@ -1,10 +1,16 @@
-GraphAware Neo4j Expire
-=======================
+GraphAware Neo4j Time Triggers 
+==============================
 
 [![Build Status](https://travis-ci.org/graphaware/neo4j-expire.png)](https://travis-ci.org/graphaware/neo4j-expire) | <a href="http://graphaware.com/products/" target="_blank">Products</a> | <a href="http://products.graphaware.com" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/expire/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 3.2.5.51.4
 
-GraphAware Expire is a simple library that automatically deletes nodes and relationships from the database when they've
-reached their expiration date or time-to-live (TTL).
+GraphAware Time Triggers is a simple library that performs user-defined or out-of-the-box state mutations on nodes and 
+relationships at pre-defined time intervals. Some example usages are: 
+
+
+- Automatically delete nodes and relationships from the database when they've reached their expiration date or 
+time-to-live (TTL).
+- Automatically apply an Active or Inactive label to nodes based on a `lastSignInDate` field. 
+- When a node becomes inactive, create new relationships, based on current state. 
 
 Getting the Software
 --------------------

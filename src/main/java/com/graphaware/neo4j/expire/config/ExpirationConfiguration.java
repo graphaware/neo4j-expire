@@ -16,6 +16,8 @@
 
 package com.graphaware.neo4j.expire.config;
 
+import java.util.Collections;
+
 import com.graphaware.common.policy.inclusion.InclusionPolicies;
 import com.graphaware.common.policy.role.InstanceRolePolicy;
 import com.graphaware.common.policy.role.WritableRole;
@@ -42,6 +44,7 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
     private static final String DEFAULT_RELATIONSHIP_EXPIRATION_PROPERTY = null;
     private static final String DEFAULT_NODE_TTL_PROPERTY = null;
     private static final String DEFAULT_RELATIONSHIP_TTL_PROPERTY = null;
+
     private static final ExpirationStrategy<Node> DEFAULT_NODE_EXPIRATION_STRATEGY = DeleteOrphanedNodeOnly.getInstance();
     private static final ExpirationStrategy<Relationship> DEFAULT_RELATIONSHIP_EXPIRATION_STRATEGY = DeleteRelationship.getInstance();
     private static final int DEFAULT_MAX_NO_EXPIRATIONS = 1000;
@@ -105,8 +108,8 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
             throw new IllegalStateException("Neither node nor relationship expiry is configured. What's the point of having the module?");
         }
 
-        Assert.notNull(nodeExpirationStrategy);
-        Assert.notNull(relationshipExpirationStrategy);
+        Assert.notNull(nodeExpirationStrategy, "nodeExpirationStrategy should not be null");
+        Assert.notNull(relationshipExpirationStrategy, "relationshipExpirationStrategy should not be null");
 
         if (nodeExpirationIndex != null && StringUtils.equals(nodeTtlProperty, nodeExpirationProperty)) {
             throw new IllegalStateException("Node TTL and expiration property are not allowed to be the same!");

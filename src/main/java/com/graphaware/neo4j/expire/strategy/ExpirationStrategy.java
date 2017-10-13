@@ -16,6 +16,8 @@
 
 package com.graphaware.neo4j.expire.strategy;
 
+import java.util.Map;
+
 import org.neo4j.graphdb.PropertyContainer;
 
 /**
@@ -23,12 +25,35 @@ import org.neo4j.graphdb.PropertyContainer;
  *
  * @param <P> type of container this strategy is for.
  */
-public interface ExpirationStrategy<P extends PropertyContainer> {
+public abstract class ExpirationStrategy<P extends PropertyContainer> {
 
-    /**
-     * Expire a container.
-     *
-     * @param pc to expire.
-     */
-    void expire(P pc);
+	private Map<String, String> config;
+
+	public ExpirationStrategy(Map<String, String> config) {
+		this.setConfig(config);
+	}
+
+	public Map<String, String> getConfig() {
+		return config;
+	}
+
+	public void setConfig(Map<String, String> config) {
+		this.config = config;
+	}
+
+	/**
+	 * Evaluate necessity of, and execute expiry of a container.
+	 *
+	 * @param pc to expire.
+	 */
+	public abstract boolean expireIfNeeded(P pc);
+
+	/**
+	 * Determines if the expired PropertyContainer is removed from the index on expiry.
+	 *
+	 * @return
+	 */
+	public boolean removesFromIndex() {
+		return true;
+	}
 }

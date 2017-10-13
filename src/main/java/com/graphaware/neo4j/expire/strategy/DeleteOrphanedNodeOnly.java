@@ -16,36 +16,42 @@
 
 package com.graphaware.neo4j.expire.strategy;
 
+import java.util.Collections;
+import java.util.Map;
+
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.common.serialize.SingletonSerializer;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 /**
- * {@link ExpirationStrategy} that deletes the expired {@link Node} iff it has no {@link Relationship}s.
+ * {@link ExpirationStrategy} that deletes the expired {@link Node} if it has no {@link Relationship}s.
  */
-public final class DeleteOrphanedNodeOnly implements ExpirationStrategy<Node> {
+public final class DeleteOrphanedNodeOnly extends ExpirationStrategy<Node> {
 
-    static {
-        Serializer.register(DeleteOrphanedNodeOnly.class, new SingletonSerializer());
-    }
+	static {
+		Serializer.register(DeleteOrphanedNodeOnly.class, new SingletonSerializer());
+	}
 
-    private static final DeleteOrphanedNodeOnly INSTANCE = new DeleteOrphanedNodeOnly();
+	private static final DeleteOrphanedNodeOnly INSTANCE = new DeleteOrphanedNodeOnly(Collections.emptyMap());
 
-    public static DeleteOrphanedNodeOnly getInstance() {
-        return INSTANCE;
-    }
+	public static DeleteOrphanedNodeOnly getInstance() {
+		return INSTANCE;
+	}
 
-    private DeleteOrphanedNodeOnly() {
-    }
+	private DeleteOrphanedNodeOnly(Map<String, String> config) {
+		super(config);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void expire(Node node) {
-        if (!node.hasRelationship()) {
-            node.delete();
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean expireIfNeeded(Node node) {
+		if (!node.hasRelationship()) {
+			node.delete();
+			return true;
+		}
+		return false;
+	}
 }
