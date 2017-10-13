@@ -8,8 +8,8 @@ relationships at pre-defined according to pre-defined life-cycle events. Some ex
 
 
 - Automatically delete nodes and relationships from the database when they've reached their expiration date or time-to-live (TTL).
-- Add and remove labels on nodes when they expire or revive.  
-- When a node expires, create new relationships based on its state. 
+- Add and remove labels on nodes when they expire or revive, for example ActiveCandidate, InactiveCandidate based on a lastSignInDate field.
+- When a node expires, create new relationships based on its state, such as unread items in an inbox. 
 
 Getting the Software
 --------------------
