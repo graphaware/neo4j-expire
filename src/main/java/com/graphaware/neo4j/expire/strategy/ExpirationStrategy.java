@@ -37,9 +37,7 @@ public abstract class ExpirationStrategy<P extends PropertyContainer> {
 		return config;
 	}
 
-	public void setConfig(Map<String, String> config) {
-		this.config = config;
-	}
+	public void setConfig(Map<String, String> config) { this.config = config; }
 
 	/**
 	 * Evaluate necessity of, and execute expiry of a container.
@@ -49,7 +47,7 @@ public abstract class ExpirationStrategy<P extends PropertyContainer> {
 	public abstract boolean expireIfNeeded(P pc);
 
 	/**
-	 * Determines if the expired PropertyContainer is removed from the index on expiry.
+	 * Override to determine if the expired PropertyContainer is removed from the index.
 	 *
 	 * @return
 	 */
