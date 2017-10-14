@@ -46,11 +46,11 @@ public class FullDefaultConfigExpiryTest extends GraphAwareIntegrationTest {
 
         assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', expire:" + twoSecondsFromNow + "})-[:THEN {expire:" + twoSecondsFromNow + "}]->(s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
 
-        waitFor(2100 - (System.currentTimeMillis() - now));
+        waitFor(2500 - (System.currentTimeMillis() - now));
 
         assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
 
-        waitFor(3100 - (System.currentTimeMillis() - now));
+        waitFor(3500 - (System.currentTimeMillis() - now));
 
         assertEmpty(getDatabase());
     }
