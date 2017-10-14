@@ -33,11 +33,11 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.logging.Log;
 
 /**
- * Bootstraps the {@link ExpirationModule} in server mode.
+ * Bootstraps the {@link LifecyleModule} in server mode.
  */
-public class ExpirationModuleBootstrapper extends BaseRuntimeModuleBootstrapper<ExpirationConfiguration> {
+public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<ExpirationConfiguration> {
 
-	private static final Log LOG = LoggerFactory.getLogger(ExpirationModuleBootstrapper.class);
+	private static final Log LOG = LoggerFactory.getLogger(LifecycleModuleBootstrapper.class);
 
 	private static final String NODE_EXPIRATION_INDEX = "nodeExpirationIndex";
 	private static final String RELATIONSHIP_EXPIRATION_INDEX = "relationshipExpirationIndex";
@@ -157,6 +157,6 @@ public class ExpirationModuleBootstrapper extends BaseRuntimeModuleBootstrapper<
 			configuration = configuration.withMaxNoExpirations(Integer.valueOf(maxNoExpirations));
 		}
 
-		return new ExpirationModule(moduleId, database, configuration);
+		return new LifecyleModule(moduleId, database, configuration);
 	}
 }

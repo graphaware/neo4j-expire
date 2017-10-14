@@ -16,7 +16,7 @@
 
 package com.graphaware.neo4j.lifecycle.expire.config;
 
-import com.graphaware.neo4j.lifecycle.expire.ExpirationModule;
+import com.graphaware.neo4j.lifecycle.expire.LifecyleModule;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -39,7 +39,7 @@ public class GraphAwareExpiryTest {
 
         ExpirationConfiguration configuration = ExpirationConfiguration.defaultConfiguration().withNodeExpirationProperty("expire");
 
-        graphAwareRuntime.registerModule(new ExpirationModule("EXP", graphDatabaseService, configuration));
+        graphAwareRuntime.registerModule(new LifecyleModule("EXP", graphDatabaseService, configuration));
 
         graphAwareRuntime.start();
         graphAwareRuntime.waitUntilStarted();

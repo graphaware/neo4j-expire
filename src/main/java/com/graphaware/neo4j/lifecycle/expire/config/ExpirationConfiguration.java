@@ -19,7 +19,7 @@ package com.graphaware.neo4j.lifecycle.expire.config;
 import com.graphaware.common.policy.inclusion.InclusionPolicies;
 import com.graphaware.common.policy.role.InstanceRolePolicy;
 import com.graphaware.common.policy.role.WritableRole;
-import com.graphaware.neo4j.lifecycle.expire.ExpirationModule;
+import com.graphaware.neo4j.lifecycle.expire.LifecyleModule;
 import com.graphaware.neo4j.lifecycle.expire.strategy.DeleteOrphanedNodeOnly;
 import com.graphaware.neo4j.lifecycle.expire.strategy.DeleteRelationship;
 import com.graphaware.neo4j.lifecycle.expire.strategy.ExpirationStrategy;
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
 
 
 /**
- * {@link BaseTxAndTimerDrivenModuleConfiguration} for {@link ExpirationModule}.
+ * {@link BaseTxAndTimerDrivenModuleConfiguration} for {@link LifecyleModule}.
  */
 public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfiguration<ExpirationConfiguration> {
 

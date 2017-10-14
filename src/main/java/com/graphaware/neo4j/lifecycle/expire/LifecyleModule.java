@@ -44,14 +44,14 @@ import org.neo4j.logging.Log;
  * A {@link TxDrivenModule} and a {@link TimerDrivenModule} that allows for setting an expiry date or ttl on nodes
  * and relationships and deletes them when they have reached that date.
  */
-public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerDrivenModule {
+public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDrivenModule {
 
-	private static final Log LOG = LoggerFactory.getLogger(ExpirationModule.class);
+	private static final Log LOG = LoggerFactory.getLogger(LifecyleModule.class);
 
 	private final ExpirationIndexer indexer;
 	private final ExpirationConfiguration config;
 
-	public ExpirationModule(String moduleId, GraphDatabaseService database, ExpirationConfiguration config) {
+	public LifecyleModule(String moduleId, GraphDatabaseService database, ExpirationConfiguration config) {
 		super(moduleId);
 
 		config.validate();
