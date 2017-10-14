@@ -14,14 +14,14 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire;
+package com.graphaware.neo4j.lifecycle.expire;
 
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
-import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
-import com.graphaware.neo4j.expire.indexer.ExpirationIndexer;
-import com.graphaware.neo4j.expire.indexer.LegacyExpirationIndexer;
-import com.graphaware.neo4j.expire.strategy.ExpirationStrategy;
+import com.graphaware.neo4j.lifecycle.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.expire.indexer.ExpirationIndexer;
+import com.graphaware.neo4j.lifecycle.expire.indexer.LegacyExpirationIndexer;
+import com.graphaware.neo4j.lifecycle.expire.strategy.ExpirationStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.metadata.EmptyContext;
 import com.graphaware.runtime.metadata.TimerDrivenModuleContext;

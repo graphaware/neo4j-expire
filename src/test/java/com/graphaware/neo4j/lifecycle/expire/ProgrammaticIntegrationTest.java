@@ -14,12 +14,12 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire;
+package com.graphaware.neo4j.lifecycle.expire;
 
 import com.graphaware.common.util.IterableUtils;
-import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
-import com.graphaware.neo4j.expire.strategy.DeleteNodeAndRelationships;
-import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
+import com.graphaware.neo4j.lifecycle.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.expire.strategy.DeleteNodeAndRelationships;
+import com.graphaware.neo4j.lifecycle.expire.strategy.DeleteOrphanedNodeOnly;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import com.graphaware.runtime.config.FluentRuntimeConfiguration;

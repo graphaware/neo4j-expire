@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2013-2016 GraphAware
+ *
+ * This file is part of the GraphAware Framework.
+ *
+ * GraphAware Framework is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details. You should have received a copy of
+ * the GNU General Public License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
+package com.graphaware.neo4j.lifecycle.expire.strategy;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.neo4j.graphdb.PropertyContainer;
+
+/**
+ * An expiration strategy that delegates to 0..n child strategies. The purpose of this strategy is to:
+ * <ul>
+ * <li>Execute multiple strategies on expiry.</li>
+ * <li>Execute user-defined strategies that exist on the class-path.</li>
+ * </ul>
+ *
+ * @param <P>
+ */
+public class CompositeExpirationStrategy<P extends PropertyContainer> extends ExpirationStrategy<P> {
+
+	List<? extends ExpirationStrategy<P>> strategies;
+
+	public CompositeExpirationStrategy(List<? extends ExpirationStrategy<P>> strategies) {
+		if (strategies != null) {
+			this.strategies = strategies;
+		} else {
+			this.strategies = Collections.emptyList();
+		}
+	}
+
+	@Override
+	public boolean expireIfNeeded(P pc) {
+		boolean allExpired = true;
+		for (ExpirationStrategy<P> strategy : strategies) {
+			boolean expired = strategy.expireIfNeeded(pc);
+			if (!expired) {
+				allExpired = false;
+			}
+		}
+		return allExpired;
+	}
+
+	@Override
+	public boolean removesFromIndex() {
+		boolean removes = true;
+		for (ExpirationStrategy<P> strategy : strategies) {
+			if (strategy.removesFromIndex()) {
+				removes = false;
+			}
+		}
+		return removes;
+	}
+
+	@Override
+	public void setConfig(Map<String, String> config) {
+		super.setConfig(config);
+		for (ExpirationStrategy<P> strategy : strategies) {
+			strategy.setConfig(config);
+		}
+	}
+}

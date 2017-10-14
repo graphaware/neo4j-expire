@@ -14,26 +14,30 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.config;
+package com.graphaware.neo4j.lifecycle.expire.config;
 
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.junit.Test;
 
 import static com.graphaware.test.unit.GraphUnit.assertEmpty;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
+import static com.graphaware.test.unit.GraphUnit.printGraph;
 import static com.graphaware.test.util.TestUtils.waitFor;
 
-public class MinimalConfigExpiryTest extends GraphAwareIntegrationTest {
+public class FullDefaultConfigExpiryTest extends GraphAwareIntegrationTest {
 
     private static final long SECOND = 1_000;
 
     @Override
     protected String configFile() {
-        return "neo4j-expire-minimal.conf";
+        return "neo4j-expire-full-default.conf";
     }
 
     @Test
     public void shouldExpireNodesAndRelationshipsWhenExpiryDateReached() {
+        getDatabase().execute("CREATE (w:Warmup)");
+        getDatabase().execute("MATCH (n) DETACH DELETE n");
+
         long now = System.currentTimeMillis();
         long twoSecondsFromNow = now + 2 * SECOND;
         long threeSecondsFromNow = now + 3 * SECOND;

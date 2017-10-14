@@ -14,17 +14,15 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.config;
-
-import java.util.Collections;
+package com.graphaware.neo4j.lifecycle.expire.config;
 
 import com.graphaware.common.policy.inclusion.InclusionPolicies;
 import com.graphaware.common.policy.role.InstanceRolePolicy;
 import com.graphaware.common.policy.role.WritableRole;
-import com.graphaware.neo4j.expire.ExpirationModule;
-import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
-import com.graphaware.neo4j.expire.strategy.DeleteRelationship;
-import com.graphaware.neo4j.expire.strategy.ExpirationStrategy;
+import com.graphaware.neo4j.lifecycle.expire.ExpirationModule;
+import com.graphaware.neo4j.lifecycle.expire.strategy.DeleteOrphanedNodeOnly;
+import com.graphaware.neo4j.lifecycle.expire.strategy.DeleteRelationship;
+import com.graphaware.neo4j.lifecycle.expire.strategy.ExpirationStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.policy.InclusionPoliciesFactory;
 import org.apache.commons.lang.StringUtils;

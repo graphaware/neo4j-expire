@@ -14,43 +14,33 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.config;
+package com.graphaware.neo4j.lifecycle.expire.config;
 
 import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.junit.Test;
 
 import static com.graphaware.test.unit.GraphUnit.assertEmpty;
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;
-import static com.graphaware.test.unit.GraphUnit.printGraph;
 import static com.graphaware.test.util.TestUtils.waitFor;
 
-public class FullDefaultConfigExpiryTest extends GraphAwareIntegrationTest {
-
-    private static final long SECOND = 1_000;
+public class MinimalConfigTtlTest extends GraphAwareIntegrationTest {
 
     @Override
     protected String configFile() {
-        return "neo4j-expire-full-default.conf";
+        return "neo4j-ttl-minimal.conf";
     }
 
     @Test
     public void shouldExpireNodesAndRelationshipsWhenExpiryDateReached() {
-        getDatabase().execute("CREATE (w:Warmup)");
-        getDatabase().execute("MATCH (n) DETACH DELETE n");
+        getDatabase().execute("CREATE (s1:State {name:'Cloudy', timeToLive:2000})-[:THEN {timeToLive:2000}]->(s2:State {name:'Windy', timeToLive:3000})");
 
-        long now = System.currentTimeMillis();
-        long twoSecondsFromNow = now + 2 * SECOND;
-        long threeSecondsFromNow = now + 3 * SECOND;
+        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', timeToLive:2000})-[:THEN {timeToLive:2000}]->(s2:State {name:'Windy', timeToLive:3000})");
 
-        getDatabase().execute("CREATE (s1:State {name:'Cloudy', expire:" + twoSecondsFromNow + "})-[:THEN {expire:" + twoSecondsFromNow + "}]->(s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
+        waitFor(2100);
 
-        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', expire:" + twoSecondsFromNow + "})-[:THEN {expire:" + twoSecondsFromNow + "}]->(s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
+        assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', timeToLive:3000})");
 
-        waitFor(2100 - (System.currentTimeMillis() - now));
-
-        assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
-
-        waitFor(3100 - (System.currentTimeMillis() - now));
+        waitFor(1100);
 
         assertEmpty(getDatabase());
     }

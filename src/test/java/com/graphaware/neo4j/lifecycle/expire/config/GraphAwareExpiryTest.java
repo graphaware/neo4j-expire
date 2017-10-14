@@ -14,10 +14,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.config;
+package com.graphaware.neo4j.lifecycle.expire.config;
 
-import com.graphaware.neo4j.expire.ExpirationModule;
-import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.expire.ExpirationModule;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import org.neo4j.graphdb.GraphDatabaseService;

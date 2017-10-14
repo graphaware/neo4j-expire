@@ -14,10 +14,10 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.indexer;
+package com.graphaware.neo4j.lifecycle.expire.indexer;
 
 import com.graphaware.common.log.LoggerFactory;
-import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.expire.config.ExpirationConfiguration;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;

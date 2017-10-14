@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.strategy;
+package com.graphaware.neo4j.lifecycle.expire.strategy;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,15 +34,13 @@ public final class AddRemoveLabels extends ExpirationStrategy<Node> {
 		Serializer.register(AddRemoveLabels.class, new SingletonSerializer());
 	}
 
-	private static final AddRemoveLabels INSTANCE = new AddRemoveLabels(Collections.emptyMap());
+	private static final AddRemoveLabels INSTANCE = new AddRemoveLabels();
 
 	public static AddRemoveLabels getInstance() {
 		return INSTANCE;
 	}
 
-	private AddRemoveLabels(Map<String, String> config) {
-		super(config);
-	}
+	private AddRemoveLabels() { }
 
 	public List<String> getLabelsToAdd() {
 		return labelsToAdd;

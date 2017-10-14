@@ -66,7 +66,7 @@ And add this configuration to register the Expire module:
 com.graphaware.runtime.enabled=true
 
 #EM becomes the module ID (you will need to use this ID in other config below):
-com.graphaware.module.EM.1=com.graphaware.neo4j.expire.ExpirationModuleBootstrapper
+com.graphaware.module.EM.1=com.graphaware.neo4j.lifecycle.expire.ExpirationModuleBootstrapper
 
 #If you want to delete nodes at a certain time, configure the node property (in this case "expire")
 #that holds the expiration time in ms since epoch:

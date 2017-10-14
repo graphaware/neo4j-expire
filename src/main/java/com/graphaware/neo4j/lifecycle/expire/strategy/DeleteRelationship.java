@@ -14,10 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.strategy;
-
-import java.util.Collections;
-import java.util.Map;
+package com.graphaware.neo4j.lifecycle.expire.strategy;
 
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.common.serialize.SingletonSerializer;
@@ -32,15 +29,13 @@ public final class DeleteRelationship extends ExpirationStrategy<Relationship> {
 		Serializer.register(DeleteRelationship.class, new SingletonSerializer());
 	}
 
-	private static final DeleteRelationship INSTANCE = new DeleteRelationship(Collections.emptyMap());
+	private static final DeleteRelationship INSTANCE = new DeleteRelationship();
 
 	public static DeleteRelationship getInstance() {
 		return INSTANCE;
 	}
 
-	private DeleteRelationship(Map<String, String> config) {
-		super(config);
-	}
+	private DeleteRelationship() { }
 
 	/**
 	 * {@inheritDoc}

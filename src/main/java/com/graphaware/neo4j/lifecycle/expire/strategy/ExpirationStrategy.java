@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.strategy;
+package com.graphaware.neo4j.lifecycle.expire.strategy;
 
 import java.util.Map;
 
@@ -28,10 +28,6 @@ import org.neo4j.graphdb.PropertyContainer;
 public abstract class ExpirationStrategy<P extends PropertyContainer> {
 
 	private Map<String, String> config;
-
-	public ExpirationStrategy(Map<String, String> config) {
-		this.setConfig(config);
-	}
 
 	public Map<String, String> getConfig() {
 		return config;

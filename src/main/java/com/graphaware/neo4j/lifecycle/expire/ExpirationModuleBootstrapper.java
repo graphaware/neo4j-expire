@@ -14,25 +14,28 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire;
+package com.graphaware.neo4j.lifecycle.expire;
 
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.graphaware.common.log.LoggerFactory;
-import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
-import com.graphaware.neo4j.expire.strategy.AddRemoveLabels;
-import com.graphaware.neo4j.expire.strategy.DeleteNodeAndRelationships;
-import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
+import com.graphaware.neo4j.lifecycle.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.expire.strategy.*;
+import com.graphaware.neo4j.lifecycle.utils.SingletonResolver;
 import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
 import com.graphaware.runtime.module.RuntimeModule;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.logging.Log;
 
 /**
  * Bootstraps the {@link ExpirationModule} in server mode.
  */
-public class ExpirationModuleBootstrapper extends
-		BaseRuntimeModuleBootstrapper<ExpirationConfiguration> {
+public class ExpirationModuleBootstrapper extends BaseRuntimeModuleBootstrapper<ExpirationConfiguration> {
 
 	private static final Log LOG = LoggerFactory.getLogger(ExpirationModuleBootstrapper.class);
 
@@ -43,12 +46,16 @@ public class ExpirationModuleBootstrapper extends
 	private static final String NODE_TTL_PROPERTY = "nodeTtlProperty";
 	private static final String RELATIONSHIP_TTL_PROPERTY = "relationshipTtlProperty";
 	private static final String NODE_EXPIRATION_STRATEGY = "nodeExpirationStrategy";
+	private static final String RELATIONSHIP_EXPIRATION_STRATEGY = "relationshipExpirationStrategy";
 	private static final String MAX_NO_EXPIRATIONS = "maxExpirations";
 
-	//TODO: Avoid adding a new key for every new strategy
 	private static final String FORCE_DELETE = "force";
 	private static final String ORPHAN_DELETE = "orphan";
-	private static final String ADD_REMOVE_LABELS = "labels";
+	private static final String DELETE_REL = "delete";
+	private static final String COMPOSITE = "composite\\((.*?)\\)";
+
+	private SingletonResolver<? extends ExpirationStrategy<Node>> nodeExpireLoader = new SingletonResolver<>();
+	private SingletonResolver<? extends ExpirationStrategy<Relationship>> relExpireLoader = new SingletonResolver<>();
 
 	/**
 	 * {@inheritDoc}
@@ -100,11 +107,10 @@ public class ExpirationModuleBootstrapper extends
 			LOG.info("Relationship ttl property set to %s", relationshipTtlProperty);
 			configuration = configuration.withRelationshipTtlProperty(relationshipTtlProperty);
 		}
-
 		if (configExists(config, NODE_EXPIRATION_STRATEGY)) {
 			String nodeExpirationStrategy = config.get(NODE_EXPIRATION_STRATEGY);
-
 			LOG.info("Node expiration strategy set to %s", nodeExpirationStrategy);
+			Matcher matcher = Pattern.compile(COMPOSITE).matcher(nodeExpirationStrategy);
 			if (FORCE_DELETE.equals(nodeExpirationStrategy)) {
 				DeleteNodeAndRelationships strategy = DeleteNodeAndRelationships.getInstance();
 				strategy.setConfig(config);
@@ -113,13 +119,35 @@ public class ExpirationModuleBootstrapper extends
 				DeleteOrphanedNodeOnly strategy = DeleteOrphanedNodeOnly.getInstance();
 				strategy.setConfig(config);
 				configuration = configuration.withNodeExpirationStrategy(strategy);
-			} else if (ADD_REMOVE_LABELS.endsWith(nodeExpirationStrategy)) {
-				AddRemoveLabels instance = AddRemoveLabels.getInstance();
-				instance.setConfig(config);
-				configuration = configuration.withNodeExpirationStrategy(instance);
+			} else if (matcher.find()) {
+				List<? extends ExpirationStrategy<Node>> list = nodeExpireLoader.resolve(matcher.group(1));
+				CompositeExpirationStrategy<Node> strategy = new CompositeExpirationStrategy<>(list);
+				strategy.setConfig(config);
+				configuration = configuration.withNodeExpirationStrategy(strategy);
 			} else {
-				LOG.error("Not a valid expiration strategy: %s", nodeExpirationStrategy);
-				throw new IllegalArgumentException("Not a valid expiration strategy.");
+				LOG.error("Not a valid node expiration strategy: %s", nodeExpirationStrategy);
+				throw new IllegalArgumentException(String.format("Not a valid expiration strategy: %s",
+						nodeExpirationStrategy));
+			}
+		}
+
+		if (configExists(config, RELATIONSHIP_EXPIRATION_STRATEGY)) {
+			String relationshipExpirationStrategy = config.get(RELATIONSHIP_EXPIRATION_STRATEGY);
+			LOG.info("Relationship expiration strategy set to %s", relationshipExpirationStrategy);
+			Matcher composite = Pattern.compile(COMPOSITE).matcher(relationshipExpirationStrategy);
+			if (DELETE_REL.endsWith(relationshipExpirationStrategy)) {
+				DeleteRelationship strategy = DeleteRelationship.getInstance();
+				strategy.setConfig(config);
+				configuration = configuration.withRelationshipExpirationStrategy(strategy);
+			} else if (composite.find()) {
+				List<? extends ExpirationStrategy<Relationship>> list = relExpireLoader.resolve(composite.group(1));
+				CompositeExpirationStrategy<Relationship> strategy = new CompositeExpirationStrategy<>(list);
+				strategy.setConfig(config);
+				configuration = configuration.withRelationshipExpirationStrategy(strategy);
+			} else {
+				LOG.error("Not a valid relationship expiration strategy: %s", relationshipExpirationStrategy);
+				throw new IllegalArgumentException(String.format("Not a valid expiration strategy: %s",
+						relationshipExpirationStrategy));
 			}
 		}
 

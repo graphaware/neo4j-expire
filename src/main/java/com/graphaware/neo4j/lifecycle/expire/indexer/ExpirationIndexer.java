@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire.indexer;
+package com.graphaware.neo4j.lifecycle.expire.indexer;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
