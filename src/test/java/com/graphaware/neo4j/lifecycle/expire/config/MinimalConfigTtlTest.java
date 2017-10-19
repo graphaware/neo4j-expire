@@ -32,15 +32,17 @@ public class MinimalConfigTtlTest extends GraphAwareIntegrationTest {
 
     @Test
     public void shouldExpireNodesAndRelationshipsWhenExpiryDateReached() {
-        getDatabase().execute("CREATE (s1:State {name:'Cloudy', timeToLive:2000})-[:THEN {timeToLive:2000}]->(s2:State {name:'Windy', timeToLive:3000})");
+        getDatabase().execute("CREATE (s1:State {name:'Cloudy', timeToLive:2000})-[:THEN {timeToLive:2000}]->" +
+                "(s2:State {name:'Windy', timeToLive:4000})");
 
-        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', timeToLive:2000})-[:THEN {timeToLive:2000}]->(s2:State {name:'Windy', timeToLive:3000})");
+        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', timeToLive:2000})-[:THEN " +
+                "{timeToLive:2000}]->(s2:State {name:'Windy', timeToLive:4000})");
 
-        waitFor(2200);
+        waitFor(2100);
 
-        assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', timeToLive:3000})");
+        assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', timeToLive:4000})");
 
-        waitFor(1200);
+        waitFor(2100);
 
         assertEmpty(getDatabase());
     }
