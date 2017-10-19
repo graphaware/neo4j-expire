@@ -36,11 +36,11 @@ public class MinimalConfigTtlTest extends GraphAwareIntegrationTest {
 
         assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', timeToLive:2000})-[:THEN {timeToLive:2000}]->(s2:State {name:'Windy', timeToLive:3000})");
 
-        waitFor(2100);
+        waitFor(2200);
 
         assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', timeToLive:3000})");
 
-        waitFor(1100);
+        waitFor(1200);
 
         assertEmpty(getDatabase());
     }

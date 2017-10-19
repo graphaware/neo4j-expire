@@ -161,7 +161,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
 			}
 		}
 
-		
+
 		if (pc.hasProperty(ttlProperty)) {
 			try {
 				long newResult = System.currentTimeMillis() + Long.parseLong(pc.getProperty(ttlProperty).toString());
