@@ -49,6 +49,12 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<E
 	private static final String RELATIONSHIP_EXPIRATION_STRATEGY = "relationshipExpirationStrategy";
 	private static final String MAX_NO_EXPIRATIONS = "maxExpirations";
 
+	/**
+	 * Expiry evaluated as expiry field + offset in ms, to to expiry on eg lastActiveDate 48 hours ago, offset is
+	 * -172,800,000.
+	 */
+	private static final String EXPIRY_OFFSET = "expiryOffset";
+
 	private static final String FORCE_DELETE = "force";
 	private static final String ORPHAN_DELETE = "orphan";
 	private static final String DELETE_REL = "delete";
@@ -155,6 +161,12 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<E
 			String maxNoExpirations = config.get(MAX_NO_EXPIRATIONS);
 			LOG.info("Max number of expirations set to %s", maxNoExpirations);
 			configuration = configuration.withMaxNoExpirations(Integer.valueOf(maxNoExpirations));
+		}
+
+		if (configExists(config, EXPIRY_OFFSET)) {
+			String expiryOffset = config.get(EXPIRY_OFFSET);
+			LOG.info("Expiry offset (ms) set to %s", expiryOffset);
+			configuration = configuration.withExpiryOffset(Integer.valueOf(expiryOffset));
 		}
 
 		return new LifecyleModule(moduleId, database, configuration);

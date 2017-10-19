@@ -40,24 +40,26 @@ public class FullAddRemoveLabelsConfigExpiryTest extends GraphAwareIntegrationTe
     getDatabase().execute("MATCH (n) DETACH DELETE n");
 
     long now = System.currentTimeMillis();
-    long fiveSecondsFromNow = now + 5 * SECOND;
-    long sixSecondsFromNow = now + 6 * SECOND;
+    long nineSecondsAgo = now - 9 * SECOND;
 
-    getDatabase().execute("CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + fiveSecondsFromNow + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + sixSecondsFromNow + "})");
+    getDatabase().execute("CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
 
-    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + fiveSecondsFromNow + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + sixSecondsFromNow + "})");
+    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
 
-    waitFor(5100 - (System.currentTimeMillis() - now));
+    waitFor(200);
+
+    //Not expired yet due to offset
+    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
+
+    waitFor(10100 - (System.currentTimeMillis() - now));
 
     //Labels applied
     assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foobar {name:'Anne', lastActive:" +
-            fiveSecondsFromNow + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + sixSecondsFromNow + "})");
-
-    waitFor(6100 - (System.currentTimeMillis() - now));
+            nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
 
     //label not applied because of inclusion policies
     assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foobar {name:'Anne', lastActive:" +
-            fiveSecondsFromNow + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + sixSecondsFromNow + "})");
+            nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
 
     try (Transaction tx = getDatabase().beginTx()) {
       assertTrue(getDatabase().index().existsForNodes("nodeExp"));

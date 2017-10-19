@@ -31,159 +31,161 @@ import static com.graphaware.common.util.PropertyContainerUtils.*;
  * {@link ExpirationIndexer} that uses the legacy index of Neo4j.
  */
 public class LegacyExpirationIndexer implements ExpirationIndexer {
-    private static final Log LOG = LoggerFactory.getLogger(LegacyExpirationIndexer.class);
-    private static final String EXPIRE = "_expire";
+
+	private static final Log LOG = LoggerFactory.getLogger(LegacyExpirationIndexer.class);
+	private static final String EXPIRE = "_expire";
 
 
-    private GraphDatabaseService database;
-    private ExpirationConfiguration configuration;
+	private GraphDatabaseService database;
+	private ExpirationConfiguration configuration;
+	private long expiryOffset;
 
-    public LegacyExpirationIndexer(GraphDatabaseService database, ExpirationConfiguration configuration) {
-        this.database = database;
-        this.configuration = configuration;
-    }
+	public LegacyExpirationIndexer(GraphDatabaseService database, ExpirationConfiguration configuration) {
+		this.database = database;
+		this.configuration = configuration;
+		this.expiryOffset = configuration.getExpiryOffset();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void indexNode(Node node) {
-        Long expiryDate = getExpirationDate(node);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void indexNode(Node node) {
+		Long expiryDate = getExpirationDate(node);
 
-        if (expiryDate != null) {
-            database.index().forNodes(configuration.getNodeExpirationIndex()).add(node, EXPIRE, new ValueContext(expiryDate).indexNumeric());
-        }
-    }
+		if (expiryDate != null) {
+			database.index().forNodes(configuration.getNodeExpirationIndex()).add(node, EXPIRE, new ValueContext(expiryDate).indexNumeric());
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void indexRelationship(Relationship relationship) {
-        Long expiryDate = getExpirationDate(relationship);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void indexRelationship(Relationship relationship) {
+		Long expiryDate = getExpirationDate(relationship);
 
-        if (expiryDate != null) {
-            database.index().forRelationships(configuration.getRelationshipExpirationIndex()).add(relationship, EXPIRE, new ValueContext(expiryDate).indexNumeric());
-        }
-    }
+		if (expiryDate != null) {
+			database.index().forRelationships(configuration.getRelationshipExpirationIndex()).add(relationship, EXPIRE, new ValueContext(expiryDate).indexNumeric());
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public IndexHits<Node> candidateNodesExpiringBefore(long timestamp) {
-        if (configuration.getNodeExpirationIndex() == null) {
-            return null;
-        }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IndexHits<Node> candidateNodesExpiringBefore(long timestamp) {
+		if (configuration.getNodeExpirationIndex() == null) {
+			return null;
+		}
 
-        IndexHits<Node> result;
+		IndexHits<Node> result;
 
-        try (Transaction tx = database.beginTx()) {
-            Index<Node> index = database.index().forNodes(configuration.getNodeExpirationIndex());
-            result = index.query(QueryContext.numericRange(EXPIRE, 0L, timestamp));
-            tx.success();
-        }
+		try (Transaction tx = database.beginTx()) {
+			Index<Node> index = database.index().forNodes(configuration.getNodeExpirationIndex());
+			result = index.query(QueryContext.numericRange(EXPIRE, 0L, timestamp));
+			tx.success();
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public IndexHits<Relationship> candidateRelsExpiringBefore(long timestamp) {
-        if (configuration.getRelationshipExpirationIndex() == null) {
-            return null;
-        }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IndexHits<Relationship> candidateRelsExpiringBefore(long timestamp) {
+		if (configuration.getRelationshipExpirationIndex() == null) {
+			return null;
+		}
 
-        IndexHits<Relationship> result;
+		IndexHits<Relationship> result;
 
-        try (Transaction tx = database.beginTx()) {
-            Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipExpirationIndex());
-            result = index.query(QueryContext.numericRange(EXPIRE, 0L, timestamp));
-            tx.success();
-        }
+		try (Transaction tx = database.beginTx()) {
+			Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipExpirationIndex());
+			result = index.query(QueryContext.numericRange(EXPIRE, 0L, timestamp));
+			tx.success();
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void removeNode(Node node) {
-        try (Transaction tx = database.beginTx()) {
-            Index<Node> index = database.index().forNodes(configuration.getNodeExpirationIndex());
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void removeNode(Node node) {
+		try (Transaction tx = database.beginTx()) {
+			Index<Node> index = database.index().forNodes(configuration.getNodeExpirationIndex());
 
-            index.remove(node, EXPIRE);
+			index.remove(node, EXPIRE);
 
-            tx.success();
-        }
-    }
+			tx.success();
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void removeRelationship(Relationship relationship) {
-        try (Transaction tx = database.beginTx()) {
-            Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipExpirationIndex());
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void removeRelationship(Relationship relationship) {
+		try (Transaction tx = database.beginTx()) {
+			Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipExpirationIndex());
 
-            index.remove(relationship, EXPIRE);
+			index.remove(relationship, EXPIRE);
 
-            tx.success();
-        }
-    }
+			tx.success();
+		}
+	}
 
-    private Long getExpirationDate(Node node) {
-        return getExpirationDate(node, configuration.getNodeExpirationProperty(), configuration.getNodeTtlProperty());
-    }
+	private Long getExpirationDate(Node node) {
+		return getExpirationDate(node, configuration.getNodeExpirationProperty(), configuration.getNodeTtlProperty());
+	}
 
-    private Long getExpirationDate(Relationship relationship) {
-        return getExpirationDate(relationship, configuration.getRelationshipExpirationProperty(), configuration.getRelationshipTtlProperty());
-    }
+	private Long getExpirationDate(Relationship relationship) {
+		return getExpirationDate(relationship, configuration.getRelationshipExpirationProperty(), configuration.getRelationshipTtlProperty());
+	}
 
-    private Long getExpirationDate(PropertyContainer pc, String expirationProperty, String ttlProperty) {
-        if (!hasExpirationProperty(pc, expirationProperty, ttlProperty)) {
-            return null;
-        }
+	private Long getExpirationDate(PropertyContainer pc, String expirationProperty, String ttlProperty) {
+		if (!hasExpirationProperty(pc, expirationProperty, ttlProperty)) {
+			return null;
+		}
 
-        Long result = null;
+		Long result = null;
 
-        if (pc.hasProperty(expirationProperty)) {
-            try {
-                result = Long.parseLong(pc.getProperty(expirationProperty).toString());
-            } catch (NumberFormatException e) {
-                LOG.warn("%s expiration property is non-numeric: %s", id(pc), pc.getProperty(expirationProperty));
-            }
-        }
+		if (pc.hasProperty(expirationProperty)) {
+			try {
+				result = Long.parseLong(pc.getProperty(expirationProperty).toString()) + expiryOffset;
+			} catch (NumberFormatException e) {
+				LOG.warn("%s expiration property is non-numeric: %s", id(pc), pc.getProperty(expirationProperty));
+			}
+		}
 
-        if (pc.hasProperty(ttlProperty)) {
-            try {
-                long newResult = System.currentTimeMillis() + Long.parseLong(pc.getProperty(ttlProperty).toString());
+		if (pc.hasProperty(ttlProperty)) {
+			try {
+				long newResult = System.currentTimeMillis() + Long.parseLong(pc.getProperty(ttlProperty).toString());
 
-                if (result != null) {
-                    LOG.warn("%s has both expiry date and a ttl.", id(pc));
+				if (result != null) {
+					LOG.warn("%s has both expiry date and a ttl.", id(pc));
 
-                    if (newResult > result) {
-                        LOG.warn("Using ttl as it is later.");
-                        result = newResult;
-                    } else {
-                        LOG.warn("Using expiry date as it is later.");
-                    }
-                }
-                else {
-                    result = newResult;
-                }
-            } catch (NumberFormatException e) {
-                LOG.warn("%s ttl property is non-numeric: %s", id(pc), pc.getProperty(ttlProperty));
-            }
-        }
+					if (newResult > result) {
+						LOG.warn("Using ttl as it is later.");
+						result = newResult;
+					} else {
+						LOG.warn("Using expiry date as it is later.");
+					}
+				} else {
+					result = newResult;
+				}
+			} catch (NumberFormatException e) {
+				LOG.warn("%s ttl property is non-numeric: %s", id(pc), pc.getProperty(ttlProperty));
+			}
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    private boolean hasExpirationProperty(PropertyContainer pc, String expirationProperty, String ttlProperty) {
-        return (pc.hasProperty(expirationProperty) || pc.hasProperty(ttlProperty));
-    }
+	private boolean hasExpirationProperty(PropertyContainer pc, String expirationProperty, String ttlProperty) {
+		return (pc.hasProperty(expirationProperty) || pc.hasProperty(ttlProperty));
+	}
 }
