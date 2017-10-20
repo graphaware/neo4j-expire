@@ -21,27 +21,27 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import com.graphaware.neo4j.lifecycle.expire.strategy.AddRemoveLabels;
-import com.graphaware.neo4j.lifecycle.expire.strategy.DeleteRelationship;
-import com.graphaware.neo4j.lifecycle.expire.strategy.ExpirationStrategy;
+import com.graphaware.neo4j.lifecycle.strategy.AddRemoveLabels;
+import com.graphaware.neo4j.lifecycle.strategy.DeleteRelationship;
+import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import org.junit.Test;
 
 public class SingletonResolverTest {
 
 	@Test
 	public void shouldResolveListOfClassNames() throws Exception {
-		SingletonResolver<? extends ExpirationStrategy> resolver = new SingletonResolver<>();
-		List<String> classNames = singletonList("com.graphaware.neo4j.lifecycle.expire.strategy.AddRemoveLabels");
-		List<? extends ExpirationStrategy> strategies = resolver.resolve(classNames);
+		SingletonResolver<? extends LifecycleStrategy> resolver = new SingletonResolver<>();
+		List<String> classNames = singletonList("com.graphaware.neo4j.lifecycle.strategy.AddRemoveLabels");
+		List<? extends LifecycleStrategy> strategies = resolver.resolve(classNames);
 		assertEquals(AddRemoveLabels.getInstance(), strategies.get(0));
 	}
 
 	@Test
 	public void shouldResolveCommaSeparatedListOfClassNames() throws Exception {
-		SingletonResolver<? extends ExpirationStrategy> resolver = new SingletonResolver<>();
-		List<? extends ExpirationStrategy> strategies = resolver.resolve(
-				"com.graphaware.neo4j.lifecycle.expire.strategy.AddRemoveLabels ,    com.graphaware.neo4j.lifecycle" +
-						".expire.strategy.DeleteRelationship");
+		SingletonResolver<? extends LifecycleStrategy> resolver = new SingletonResolver<>();
+		List<? extends LifecycleStrategy> strategies = resolver.resolve(
+				"com.graphaware.neo4j.lifecycle.strategy.AddRemoveLabels ,    com.graphaware.neo4j.lifecycle" +
+						".strategy.DeleteRelationship");
 		assertEquals(AddRemoveLabels.getInstance(), strategies.get(0));
 		assertEquals(DeleteRelationship.getInstance(), strategies.get(1));
 	}

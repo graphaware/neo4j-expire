@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire;
+package com.graphaware.neo4j.lifecycle;
 
 import java.util.List;
 import java.util.Map;
@@ -22,8 +22,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.graphaware.common.log.LoggerFactory;
-import com.graphaware.neo4j.lifecycle.expire.config.ExpirationConfiguration;
-import com.graphaware.neo4j.lifecycle.expire.strategy.*;
+import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
+import com.graphaware.neo4j.lifecycle.strategy.*;
 import com.graphaware.neo4j.lifecycle.utils.SingletonResolver;
 import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
 import com.graphaware.runtime.module.RuntimeModule;
@@ -35,7 +35,7 @@ import org.neo4j.logging.Log;
 /**
  * Bootstraps the {@link LifecyleModule} in server mode.
  */
-public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<ExpirationConfiguration> {
+public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<LifecycleConfiguration> {
 
 	private static final Log LOG = LoggerFactory.getLogger(LifecycleModuleBootstrapper.class);
 
@@ -60,15 +60,15 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<E
 	private static final String DELETE_REL = "delete";
 	private static final String COMPOSITE = "composite\\((.*?)\\)";
 
-	private SingletonResolver<? extends ExpirationStrategy<Node>> nodeExpireLoader = new SingletonResolver<>();
-	private SingletonResolver<? extends ExpirationStrategy<Relationship>> relExpireLoader = new SingletonResolver<>();
+	private SingletonResolver<? extends LifecycleStrategy<Node>> nodeExpireLoader = new SingletonResolver<>();
+	private SingletonResolver<? extends LifecycleStrategy<Relationship>> relExpireLoader = new SingletonResolver<>();
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected ExpirationConfiguration defaultConfiguration() {
-		return ExpirationConfiguration.defaultConfiguration();
+	protected LifecycleConfiguration defaultConfiguration() {
+		return LifecycleConfiguration.defaultConfiguration();
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<E
 	 */
 	@Override
 	protected RuntimeModule doBootstrapModule(String moduleId, Map<String, String> config,
-	                                          GraphDatabaseService database, ExpirationConfiguration configuration) {
+	                                          GraphDatabaseService database, LifecycleConfiguration configuration) {
 		if (configExists(config, NODE_EXPIRATION_INDEX)) {
 			String nodeExpirationIndex = config.get(NODE_EXPIRATION_INDEX);
 			LOG.info("Node expiration index set to %s", nodeExpirationIndex);
@@ -126,8 +126,8 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<E
 				strategy.setConfig(config);
 				configuration = configuration.withNodeExpirationStrategy(strategy);
 			} else if (matcher.find()) {
-				List<? extends ExpirationStrategy<Node>> list = nodeExpireLoader.resolve(matcher.group(1));
-				CompositeExpirationStrategy<Node> strategy = new CompositeExpirationStrategy<>(list);
+				List<? extends LifecycleStrategy<Node>> list = nodeExpireLoader.resolve(matcher.group(1));
+				CompositeStrategy<Node> strategy = new CompositeStrategy<>(list);
 				strategy.setConfig(config);
 				configuration = configuration.withNodeExpirationStrategy(strategy);
 			} else {
@@ -146,8 +146,8 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<E
 				strategy.setConfig(config);
 				configuration = configuration.withRelationshipExpirationStrategy(strategy);
 			} else if (composite.find()) {
-				List<? extends ExpirationStrategy<Relationship>> list = relExpireLoader.resolve(composite.group(1));
-				CompositeExpirationStrategy<Relationship> strategy = new CompositeExpirationStrategy<>(list);
+				List<? extends LifecycleStrategy<Relationship>> list = relExpireLoader.resolve(composite.group(1));
+				CompositeStrategy<Relationship> strategy = new CompositeStrategy<>(list);
 				strategy.setConfig(config);
 				configuration = configuration.withRelationshipExpirationStrategy(strategy);
 			} else {

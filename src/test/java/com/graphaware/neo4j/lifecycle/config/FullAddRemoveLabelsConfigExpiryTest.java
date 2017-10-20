@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire.config;
+package com.graphaware.neo4j.lifecycle.config;
 
 
 import static com.graphaware.test.unit.GraphUnit.assertSameGraph;

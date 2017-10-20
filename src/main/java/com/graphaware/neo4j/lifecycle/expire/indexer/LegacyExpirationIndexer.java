@@ -17,7 +17,7 @@
 package com.graphaware.neo4j.lifecycle.expire.indexer;
 
 import com.graphaware.common.log.LoggerFactory;
-import com.graphaware.neo4j.lifecycle.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -37,10 +37,10 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
 
 
 	private GraphDatabaseService database;
-	private ExpirationConfiguration configuration;
+	private LifecycleConfiguration configuration;
 	private long expiryOffset;
 
-	public LegacyExpirationIndexer(GraphDatabaseService database, ExpirationConfiguration configuration) {
+	public LegacyExpirationIndexer(GraphDatabaseService database, LifecycleConfiguration configuration) {
 		this.database = database;
 		this.configuration = configuration;
 		this.expiryOffset = configuration.getExpiryOffset();

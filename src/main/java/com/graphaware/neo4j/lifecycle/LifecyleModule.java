@@ -14,14 +14,14 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire;
+package com.graphaware.neo4j.lifecycle;
 
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
-import com.graphaware.neo4j.lifecycle.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
 import com.graphaware.neo4j.lifecycle.expire.indexer.ExpirationIndexer;
 import com.graphaware.neo4j.lifecycle.expire.indexer.LegacyExpirationIndexer;
-import com.graphaware.neo4j.lifecycle.expire.strategy.ExpirationStrategy;
+import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.metadata.EmptyContext;
 import com.graphaware.runtime.metadata.TimerDrivenModuleContext;
@@ -49,9 +49,9 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 	private static final Log LOG = LoggerFactory.getLogger(LifecyleModule.class);
 
 	private final ExpirationIndexer indexer;
-	private final ExpirationConfiguration config;
+	private final LifecycleConfiguration config;
 
-	public LifecyleModule(String moduleId, GraphDatabaseService database, ExpirationConfiguration config) {
+	public LifecyleModule(String moduleId, GraphDatabaseService database, LifecycleConfiguration config) {
 		super(moduleId);
 
 		config.validate();
@@ -169,8 +169,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		if (relationshipsToExpire != null) {
 			for (Relationship relationship : relationshipsToExpire) {
 				if (expired < config.getMaxNoExpirations()) {
-					ExpirationStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
-					boolean didExpire = strategy.expireIfNeeded(relationship);
+					LifecycleStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
+					boolean didExpire = strategy.applyIfNeeded(relationship, LifecycleEvent.EXPIRY);
 					if (didExpire && strategy.removesFromIndex()) {
 						indexer.removeRelationship(relationship);
 					}
@@ -188,8 +188,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		if (nodesToExpire != null) {
 			for (Node node : nodesToExpire) {
 				if (expired < config.getMaxNoExpirations()) {
-					ExpirationStrategy<Node> strategy = config.getNodeExpirationStrategy();
-					boolean didExpire = strategy.expireIfNeeded(node);
+					LifecycleStrategy<Node> strategy = config.getNodeExpirationStrategy();
+					boolean didExpire = strategy.applyIfNeeded(node, LifecycleEvent.EXPIRY );
 					if (didExpire && strategy.removesFromIndex()) {
 						indexer.removeNode(node);
 					}

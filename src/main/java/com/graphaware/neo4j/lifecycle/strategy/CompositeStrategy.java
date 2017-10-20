@@ -14,16 +14,17 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire.strategy;
+package com.graphaware.neo4j.lifecycle.strategy;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.graphaware.neo4j.lifecycle.LifecycleEvent;
 import org.neo4j.graphdb.PropertyContainer;
 
 /**
- * An expiration strategy that delegates to 0..n child strategies. The purpose of this strategy is to:
+ * An lifecycle strategy that delegates to 0..n child strategies. The purpose of this strategy is to:
  * <ul>
  * <li>Execute multiple strategies on expiry.</li>
  * <li>Execute user-defined strategies that exist on the class-path.</li>
@@ -31,11 +32,11 @@ import org.neo4j.graphdb.PropertyContainer;
  *
  * @param <P>
  */
-public class CompositeExpirationStrategy<P extends PropertyContainer> extends ExpirationStrategy<P> {
+public class CompositeStrategy<P extends PropertyContainer> extends LifecycleStrategy<P> {
 
-	List<? extends ExpirationStrategy<P>> strategies;
+	List<? extends LifecycleStrategy<P>> strategies;
 
-	public CompositeExpirationStrategy(List<? extends ExpirationStrategy<P>> strategies) {
+	public CompositeStrategy(List<? extends LifecycleStrategy<P>> strategies) {
 		if (strategies != null) {
 			this.strategies = strategies;
 		} else {
@@ -44,10 +45,10 @@ public class CompositeExpirationStrategy<P extends PropertyContainer> extends Ex
 	}
 
 	@Override
-	public boolean expireIfNeeded(P pc) {
+	public boolean applyIfNeeded(P pc, LifecycleEvent event) {
 		boolean allExpired = true;
-		for (ExpirationStrategy<P> strategy : strategies) {
-			boolean expired = strategy.expireIfNeeded(pc);
+		for (LifecycleStrategy<P> strategy : strategies) {
+			boolean expired = strategy.applyIfNeeded(pc, event);
 			if (!expired) {
 				allExpired = false;
 			}
@@ -58,7 +59,7 @@ public class CompositeExpirationStrategy<P extends PropertyContainer> extends Ex
 	@Override
 	public boolean removesFromIndex() {
 		boolean removes = true;
-		for (ExpirationStrategy<P> strategy : strategies) {
+		for (LifecycleStrategy<P> strategy : strategies) {
 			if (strategy.removesFromIndex()) {
 				removes = false;
 			}
@@ -69,7 +70,7 @@ public class CompositeExpirationStrategy<P extends PropertyContainer> extends Ex
 	@Override
 	public void setConfig(Map<String, String> config) {
 		super.setConfig(config);
-		for (ExpirationStrategy<P> strategy : strategies) {
+		for (LifecycleStrategy<P> strategy : strategies) {
 			strategy.setConfig(config);
 		}
 	}

@@ -14,17 +14,18 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire.strategy;
+package com.graphaware.neo4j.lifecycle.strategy;
 
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.common.serialize.SingletonSerializer;
+import com.graphaware.neo4j.lifecycle.LifecycleEvent;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 /**
- * {@link ExpirationStrategy} that deletes the expired {@link Node} and a all its {@link Relationship}s.
+ * {@link LifecycleStrategy} that deletes the expired {@link Node} and a all its {@link Relationship}s.
  */
-public final class DeleteNodeAndRelationships extends ExpirationStrategy<Node> {
+public final class DeleteNodeAndRelationships extends LifecycleStrategy<Node> {
 
 	static {
 		Serializer.register(DeleteNodeAndRelationships.class, new SingletonSerializer());
@@ -42,7 +43,7 @@ public final class DeleteNodeAndRelationships extends ExpirationStrategy<Node> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean expireIfNeeded(Node node) {
+	public boolean applyIfNeeded(Node node, LifecycleEvent event) {
 		for (Relationship r : node.getRelationships()) {
 			r.delete();
 		}

@@ -14,18 +14,19 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire.strategy;
+package com.graphaware.neo4j.lifecycle.strategy;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.common.serialize.SingletonSerializer;
+import com.graphaware.neo4j.lifecycle.LifecycleEvent;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 
 
-public final class AddRemoveLabels extends ExpirationStrategy<Node> {
+public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 
 	private List<String> labelsToAdd;
 	private List<String> labelsToRemove;
@@ -77,7 +78,7 @@ public final class AddRemoveLabels extends ExpirationStrategy<Node> {
 	}
 
 	@Override
-	public boolean expireIfNeeded(Node node) {
+	public boolean applyIfNeeded(Node node, LifecycleEvent event) {
 		for (String label : this.labelsToRemove) {
 			node.removeLabel(Label.label(label));
 		}
