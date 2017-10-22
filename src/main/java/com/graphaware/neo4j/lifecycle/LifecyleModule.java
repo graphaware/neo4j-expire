@@ -16,6 +16,8 @@
 
 package com.graphaware.neo4j.lifecycle;
 
+import java.util.Date;
+
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
@@ -127,53 +129,12 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 	public TimerDrivenModuleContext doSomeWork(TimerDrivenModuleContext timerDrivenModuleContext, GraphDatabaseService graphDatabaseService) {
 		long now = System.currentTimeMillis();
 
-		reviveRelationships(now);
-		reviveNodes(now);
 		expireRelationships(now);
 		expireNodes(now);
+		reviveRelationships(now);
+		reviveNodes(now);
 
 		return new EmptyContext();
-	}
-
-	private void expireRelationships(long now) {
-		int expired = 0;
-		IndexHits<Relationship> relationshipsToExpire = expirationIndexer.candidateRelsExpiringBefore(now);
-		if (relationshipsToExpire != null) {
-			for (Relationship relationship : relationshipsToExpire) {
-				if (expired < config.getMaxNoExpirations()) {
-					LifecycleStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
-					boolean didExpire = strategy.applyIfNeeded(relationship, LifecycleEvent.EXPIRY);
-					if (didExpire && strategy.removesFromIndex()) {
-						expirationIndexer.removeRelationship(relationship);
-					}
-					expired++;
-				} else {
-					break;
-				}
-			 }
-		}
-	}
-
-	private void expireNodes(long now) {
-		int expired = 0;
-		IndexHits<Node> nodesToExpire = expirationIndexer.candidateNodesExpiringBefore(now);
-		if (nodesToExpire != null) {
-			for (Node node : nodesToExpire) {
-				if (expired < config.getMaxNoExpirations()) {
-					LifecycleStrategy<Node> strategy = config.getNodeExpirationStrategy();
-					boolean didExpire = strategy.applyIfNeeded(node, LifecycleEvent.EXPIRY );
-					if (didExpire && strategy.removesFromIndex()) {
-						expirationIndexer.removeNode(node);
-					}
-					else {
-						System.out.println("nope!");
-					}
-					expired++;
-				} else {
-					break;
-				}
-			}
-		}
 	}
 
 	private void reviveRelationships(long now) {
@@ -207,6 +168,44 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 						revivalIndexer.removeNode(node);
 					}
 					revived++;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	private void expireRelationships(long now) {
+		int expired = 0;
+		IndexHits<Relationship> relationshipsToExpire = expirationIndexer.candidateRelsExpiringBefore(now);
+		if (relationshipsToExpire != null) {
+			for (Relationship relationship : relationshipsToExpire) {
+				if (expired < config.getMaxNoExpirations()) {
+					LifecycleStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
+					boolean didExpire = strategy.applyIfNeeded(relationship, LifecycleEvent.EXPIRY);
+					if (didExpire && strategy.removesFromIndex()) {
+						expirationIndexer.removeRelationship(relationship);
+					}
+					expired++;
+				} else {
+					break;
+				}
+			 }
+		}
+	}
+
+	private void expireNodes(long now) {
+		int expired = 0;
+		IndexHits<Node> nodesToExpire = expirationIndexer.candidateNodesExpiringBefore(now);
+		if (nodesToExpire != null) {
+			for (Node node : nodesToExpire) {
+				if (expired < config.getMaxNoExpirations()) {
+					LifecycleStrategy<Node> strategy = config.getNodeExpirationStrategy();
+					boolean didExpire = strategy.applyIfNeeded(node, LifecycleEvent.EXPIRY );
+					if (didExpire && strategy.removesFromIndex()) {
+						expirationIndexer.removeNode(node);
+					}
+					expired++;
 				} else {
 					break;
 				}

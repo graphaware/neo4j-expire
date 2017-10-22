@@ -40,26 +40,27 @@ public class AddRemoveLabelsExpiryRevivalTest extends GraphAwareIntegrationTest 
     getDatabase().execute("MATCH (n) DETACH DELETE n");
 
     long now = System.currentTimeMillis();
-    long nineSecondsAgo = now - 9 * SECOND;
+    long fiveSecondsAgo = now - 5 * SECOND;
 
-    getDatabase().execute("CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
+    getDatabase().execute("CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + fiveSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + fiveSecondsAgo + "})");
 
-    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
+//    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
 
     waitFor(200);
 
-    //Not expired yet due to offset
-    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile {name:'Anne', lastActive:" + nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
+    //It is an active profile now
+    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:ActiveProfile:Bar {name:'Anne', lastActive:" +
+            fiveSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + fiveSecondsAgo + "})");
 
-    waitFor(10100 - (System.currentTimeMillis() - now));
+    waitFor(5100 - (System.currentTimeMillis() - now));
 
     //Labels applied
     assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foo {name:'Anne', lastActive:" +
-            nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
+            fiveSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + fiveSecondsAgo + "})");
 
     //label not applied because of inclusion policies
     assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foo {name:'Anne', lastActive:" +
-            nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
+            fiveSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + fiveSecondsAgo + "})");
 
   }
 }

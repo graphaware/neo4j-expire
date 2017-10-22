@@ -27,6 +27,8 @@ import org.neo4j.logging.Log;
 
 import static com.graphaware.common.util.PropertyContainerUtils.*;
 
+import java.util.Date;
+
 /**
  * {@link ExpirationIndexer} that uses the legacy index of Neo4j.
  */
@@ -51,7 +53,8 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
 		Long expiryDate = getExpirationDate(node);
 
 		if (expiryDate != null) {
-			database.index().forNodes(configuration.getNodeExpirationIndex()).add(node, EXPIRE, new ValueContext(expiryDate).indexNumeric());
+			database.index().forNodes(configuration.getNodeExpirationIndex())
+					.add(node, EXPIRE, new ValueContext(expiryDate).indexNumeric());
 		}
 	}
 
@@ -63,7 +66,8 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
 		Long expiryDate = getExpirationDate(relationship);
 
 		if (expiryDate != null) {
-			database.index().forRelationships(configuration.getRelationshipExpirationIndex()).add(relationship, EXPIRE, new ValueContext(expiryDate).indexNumeric());
+			database.index().forRelationships(configuration.getRelationshipExpirationIndex())
+					.add(relationship, EXPIRE, new ValueContext(expiryDate).indexNumeric());
 		}
 	}
 
@@ -152,7 +156,8 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
 
 		if (pc.hasProperty(expirationProperty)) {
 			try {
-				result = Long.parseLong(pc.getProperty(expirationProperty).toString()) + configuration.getExpiryOffset();
+				long expiryOffset = configuration.getExpiryOffset();
+				result = Long.parseLong(pc.getProperty(expirationProperty).toString()) + expiryOffset;
 			} catch (NumberFormatException e) {
 				LOG.warn("%s expiration property is non-numeric: %s", id(pc), pc.getProperty(expirationProperty));
 			}

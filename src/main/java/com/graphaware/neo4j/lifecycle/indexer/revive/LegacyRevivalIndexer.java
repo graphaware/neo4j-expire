@@ -18,6 +18,8 @@ package com.graphaware.neo4j.lifecycle.indexer.revive;
 
 import static com.graphaware.common.util.PropertyContainerUtils.id;
 
+import java.util.Date;
+
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
 import org.neo4j.graphdb.*;
@@ -50,7 +52,7 @@ public class LegacyRevivalIndexer implements RevivalIndexer {
 		Long revivalDate = getRevivalDate(node);
 
 		if (revivalDate != null) {
-			database.index().forNodes(configuration.getNodeExpirationIndex()).add(node, REVIVE,
+			database.index().forNodes(configuration.getNodeRevivalIndex()).add(node, REVIVE,
 					new ValueContext(revivalDate).indexNumeric());
 		}
 	}
@@ -63,7 +65,7 @@ public class LegacyRevivalIndexer implements RevivalIndexer {
 		Long revivalDate = getRevivalDate(relationship);
 
 		if (revivalDate != null) {
-			database.index().forRelationships(configuration.getRelationshipExpirationIndex()).add(relationship, REVIVE,
+			database.index().forRelationships(configuration.getRelationshipRevivalIndex()).add(relationship, REVIVE,
 					new ValueContext(revivalDate).indexNumeric());
 		}
 	}
@@ -80,7 +82,7 @@ public class LegacyRevivalIndexer implements RevivalIndexer {
 		IndexHits<Node> result;
 
 		try (Transaction tx = database.beginTx()) {
-			Index<Node> index = database.index().forNodes(configuration.getNodeExpirationIndex());
+			Index<Node> index = database.index().forNodes(configuration.getNodeRevivalIndex());
 			result = index.query(QueryContext.numericRange(REVIVE, 0L, timestamp));
 			tx.success();
 		}
@@ -101,7 +103,7 @@ public class LegacyRevivalIndexer implements RevivalIndexer {
 		IndexHits<Relationship> result;
 
 		try (Transaction tx = database.beginTx()) {
-			Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipExpirationIndex());
+			Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipRevivalIndex());
 			result = index.query(QueryContext.numericRange(REVIVE, 0L, timestamp));
 			tx.success();
 		}
@@ -114,7 +116,7 @@ public class LegacyRevivalIndexer implements RevivalIndexer {
 	@Override
 	public void removeNode(Node node) {
 		try (Transaction tx = database.beginTx()) {
-			Index<Node> index = database.index().forNodes(configuration.getNodeExpirationIndex());
+			Index<Node> index = database.index().forNodes(configuration.getNodeRevivalIndex());
 
 			index.remove(node, REVIVE);
 
@@ -128,7 +130,7 @@ public class LegacyRevivalIndexer implements RevivalIndexer {
 	@Override
 	public void removeRelationship(Relationship relationship) {
 		try (Transaction tx = database.beginTx()) {
-			Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipExpirationIndex());
+			Index<Relationship> index = database.index().forRelationships(configuration.getRelationshipRevivalIndex());
 
 			index.remove(relationship, REVIVE);
 
@@ -150,7 +152,8 @@ public class LegacyRevivalIndexer implements RevivalIndexer {
 
 		if (pc.hasProperty(revivalProperty)) {
 			try {
-				result = Long.parseLong(pc.getProperty(revivalProperty).toString()) + configuration.getRevivalOffset();
+				long revivalOffset = configuration.getRevivalOffset();
+				result = Long.parseLong(pc.getProperty(revivalProperty).toString()) + revivalOffset;
 			} catch (NumberFormatException e) {
 				LOG.warn("%s revival property is non-numeric: %s", id(pc), pc.getProperty(revivalProperty));
 			}

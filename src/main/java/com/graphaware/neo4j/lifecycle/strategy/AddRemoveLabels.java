@@ -16,7 +16,7 @@
 
 package com.graphaware.neo4j.lifecycle.strategy;
 
-import static com.graphaware.neo4j.lifecycle.LifecycleEvent.EXPIRY;
+import static com.graphaware.neo4j.lifecycle.LifecycleEvent.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,8 +30,8 @@ import org.neo4j.graphdb.Node;
 
 public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 
-	private List<String> labelsToAdd;
-	private List<String> labelsToRemove;
+	private EnumMap<LifecycleEvent, List<String>> labelsToAdd = new EnumMap<>(LifecycleEvent.class);
+	private EnumMap<LifecycleEvent, List<String>> labelsToRemove = new EnumMap<>(LifecycleEvent.class);
 
 	static {
 		Serializer.register(AddRemoveLabels.class, new SingletonSerializer());
@@ -43,54 +43,43 @@ public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 		return INSTANCE;
 	}
 
-	private AddRemoveLabels() { }
+	private AddRemoveLabels() {
+	}
 
-	public List<String> getLabelsToAdd() {
+	public EnumMap<LifecycleEvent, List<String>> getLabelsToAdd() {
 		return labelsToAdd;
 	}
 
-	public List<String> getLabelsToRemove() {
+	public EnumMap<LifecycleEvent, List<String>> getLabelsToRemove() {
 		return labelsToRemove;
 	}
 
 	@Override
 	public void setConfig(Map<String, String> config) {
 		super.setConfig(config);
-
-		String labelsToAdd = config.get("nodeExpirationStrategy.labelsToAdd");
-		if (labelsToAdd != null) {
-			labelsToAdd = labelsToAdd.replaceAll("^\\[|]$", ""); //Replace leading and trailing brackets, if exist
-			this.labelsToAdd = Arrays.stream(labelsToAdd.split(","))
-					.map(String::trim).collect(Collectors.toList());
-		}
-		else {
-			this.labelsToAdd = Collections.emptyList();
-		}
-
-		String labelsToRemove = config.get("nodeExpirationStrategy.labelsToRemove");
-		if (labelsToRemove != null) {
-			labelsToRemove = labelsToRemove.replaceAll("^\\[|]$", "");
-			this.labelsToRemove = Arrays.stream(labelsToRemove.split(","))
-					.map(String::trim).collect(Collectors.toList());
-		}
-		else {
-			this.labelsToRemove = Collections.emptyList();
-		}
-
+		labelsToAdd.put(EXPIRY, toList(config, "nodeExpirationStrategy.labelsToAdd"));
+		labelsToRemove.put(EXPIRY, toList(config, "nodeExpirationStrategy.labelsToRemove"));
+		labelsToAdd.put(REVIVAL, toList(config, "nodeRevivalStrategy.labelsToAdd"));
+		labelsToRemove.put(REVIVAL, toList(config, "nodeRevivalStrategy.labelsToRemove"));
 	}
 
 	@Override
 	public boolean applyIfNeeded(Node node, LifecycleEvent event) {
-		System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " + event);
-		if (event == EXPIRY) {
-			for (String label : this.labelsToRemove) {
-				node.removeLabel(Label.label(label));
-			}
-			for (String label : this.labelsToAdd) {
-				node.addLabel(Label.label(label));
-			}
-			return true;
+		for (String label : this.labelsToRemove.get(event)) {
+			node.removeLabel(Label.label(label));
 		}
-		return false;
+		for (String label : this.labelsToAdd.get(event)) {
+			node.addLabel(Label.label(label));
+		}
+		return true;
+	}
+
+	List<String> toList(Map<String, String> config, String propertyName) {
+		String labelsToRemove = config.get(propertyName);
+		if (labelsToRemove != null) {
+			labelsToRemove = labelsToRemove.replaceAll("^\\[|]$", "");
+			return Arrays.stream(labelsToRemove.split(",")).map(String::trim).collect(Collectors.toList());
+		}
+		return Collections.emptyList();
 	}
 }

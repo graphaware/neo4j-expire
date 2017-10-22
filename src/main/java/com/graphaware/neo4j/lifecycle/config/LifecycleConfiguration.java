@@ -56,6 +56,9 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
 
     private String nodeExpirationIndex;
     private String relationshipExpirationIndex;
+    //TODO: Make configurable
+    private String nodeRevivalIndex = "nodeRevivalIndex";
+    private String relationshipRevivalIndex = "relationshipRevivalIndex";
     private String nodeExpirationProperty;
     private String relationshipExpirationProperty;
     private String nodeTtlProperty;
@@ -263,9 +266,11 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
         return new LifecycleConfiguration(getInclusionPolicies(), initializeUntil(), getInstanceRolePolicy(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationProperty(), getRelationshipExpirationProperty(), getNodeTtlProperty(), getRelationshipTtlProperty(), getNodeRevivalProperty(), getRelationshipRevivalProperty(), getMaxNoExpirations(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy(), getNodeRevivalStrategy(), getRelationshipRevivalStrategy(), getExpiryOffset(), revivalOffset);
     }
 
-    public String getNodeExpirationIndex() {
-        return nodeExpirationIndex;
-    }
+    public String getNodeExpirationIndex() { return nodeExpirationIndex; }
+
+    public String getNodeRevivalIndex() { return nodeRevivalIndex; }
+
+    public String getRelationshipRevivalIndex() { return relationshipRevivalIndex; }
 
     public String getRelationshipExpirationIndex() {
         return relationshipExpirationIndex;
@@ -323,6 +328,10 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
             return false;
         if (relationshipExpirationIndex != null ? !relationshipExpirationIndex.equals(that.relationshipExpirationIndex) : that.relationshipExpirationIndex != null)
             return false;
+        if (nodeRevivalIndex != null ? !nodeRevivalIndex.equals(that.nodeRevivalIndex) : that.nodeRevivalIndex != null)
+            return false;
+        if (relationshipRevivalIndex != null ? !relationshipRevivalIndex.equals(that.relationshipRevivalIndex) : that.relationshipRevivalIndex != null)
+            return false;
         if (nodeExpirationProperty != null ? !nodeExpirationProperty.equals(that.nodeExpirationProperty) : that.nodeExpirationProperty != null)
             return false;
         if (relationshipExpirationProperty != null ? !relationshipExpirationProperty.equals(that.relationshipExpirationProperty) : that.relationshipExpirationProperty != null)
@@ -349,6 +358,8 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
         int result = super.hashCode();
         result = 31 * result + (nodeExpirationIndex != null ? nodeExpirationIndex.hashCode() : 0);
         result = 31 * result + (relationshipExpirationIndex != null ? relationshipExpirationIndex.hashCode() : 0);
+        result = 31 * result + (nodeRevivalIndex != null ? nodeRevivalIndex.hashCode() : 0);
+        result = 31 * result + (relationshipRevivalIndex != null ? relationshipRevivalIndex.hashCode() : 0);
         result = 31 * result + (nodeExpirationProperty != null ? nodeExpirationProperty.hashCode() : 0);
         result = 31 * result + (relationshipExpirationProperty != null ? relationshipExpirationProperty.hashCode() : 0);
         result = 31 * result + (nodeTtlProperty != null ? nodeTtlProperty.hashCode() : 0);
