@@ -19,6 +19,7 @@ package com.graphaware.neo4j.lifecycle.config;
 import com.graphaware.common.policy.inclusion.InclusionPolicies;
 import com.graphaware.common.policy.role.InstanceRolePolicy;
 import com.graphaware.common.policy.role.WritableRole;
+import com.graphaware.neo4j.lifecycle.LifecycleEvent;
 import com.graphaware.neo4j.lifecycle.LifecyleModule;
 import com.graphaware.neo4j.lifecycle.strategy.CompositeStrategy;
 import com.graphaware.neo4j.lifecycle.strategy.DeleteOrphanedNodeOnly;
@@ -272,9 +273,7 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
 
     public String getRelationshipRevivalIndex() { return relationshipRevivalIndex; }
 
-    public String getRelationshipExpirationIndex() {
-        return relationshipExpirationIndex;
-    }
+    public String getRelationshipExpirationIndex() { return relationshipExpirationIndex; }
 
     public String getNodeExpirationProperty() {
         return nodeExpirationProperty;
@@ -309,6 +308,38 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
     public long getExpiryOffset() { return expiryOffset; }
 
     public long getRevivalOffset() { return revivalOffset; }
+
+    /**
+     * Returns the node index name for the specified lifecycle event.
+     * TODO: Use polymorphism here.
+     * @param event
+     */
+    public String nodeIndexFor(LifecycleEvent event) {
+        switch (event) {
+            case EXPIRY:
+                return getNodeExpirationIndex();
+            case REVIVAL:
+                return getNodeRevivalIndex();
+            default:
+                throw new IllegalArgumentException("No index configured for event: " + event);
+        }
+    }
+
+    /**
+     * Returns the node index name for the specified lifecycle event.
+     * TODO: Use polymorphism.
+     * @param event
+     */
+    public String relationshipIndexFor(LifecycleEvent event) {
+        switch (event) {
+            case EXPIRY:
+                return getRelationshipExpirationIndex();
+            case REVIVAL:
+                return getRelationshipRevivalIndex();
+            default:
+                throw new IllegalArgumentException("No index configured for event: " + event);
+        }
+    }
 
     //TODO: Rename this to batchSize
     public int getMaxNoExpirations() { return maxNoExpirations; }

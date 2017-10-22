@@ -16,15 +16,14 @@
 
 package com.graphaware.neo4j.lifecycle;
 
-import java.util.Date;
+
+import static com.graphaware.neo4j.lifecycle.LifecycleEvent.*;
 
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
-import com.graphaware.neo4j.lifecycle.indexer.expire.ExpirationIndexer;
-import com.graphaware.neo4j.lifecycle.indexer.expire.LegacyExpirationIndexer;
-import com.graphaware.neo4j.lifecycle.indexer.revive.LegacyRevivalIndexer;
-import com.graphaware.neo4j.lifecycle.indexer.revive.RevivalIndexer;
+import com.graphaware.neo4j.lifecycle.indexer.LegacyLifecycleIndexer;
+import com.graphaware.neo4j.lifecycle.indexer.LifecycleIndexer;
 import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.metadata.EmptyContext;
@@ -52,8 +51,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 	private static final Log LOG = LoggerFactory.getLogger(LifecyleModule.class);
 
-	private final ExpirationIndexer expirationIndexer;
-	private final RevivalIndexer revivalIndexer;
+	private final LifecycleIndexer lifecycleIndexer;
 	private final LifecycleConfiguration config;
 
 	public LifecyleModule(String moduleId, GraphDatabaseService database, LifecycleConfiguration config) {
@@ -61,8 +59,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 		config.validate();
 
-		this.expirationIndexer = new LegacyExpirationIndexer(database, config);
-		this.revivalIndexer = new LegacyRevivalIndexer(database, config);
+		this.lifecycleIndexer = new LegacyLifecycleIndexer(database, config);
 		this.config = config;
 	}
 
@@ -85,8 +82,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 			new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllRelationships(database, batchSize), new UnitOfWork<Relationship>() {
 				@Override
 				public void execute(GraphDatabaseService database, Relationship r, int batchNumber, int stepNumber) {
-					expirationIndexer.indexRelationship(r);
-					revivalIndexer.indexRelationship(r);
+					LifecycleEvent.list().forEach(event -> lifecycleIndexer.indexRelationship(event, r));
 				}
 			}).execute();
 		}
@@ -97,8 +93,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 			new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllNodes(database, batchSize), new UnitOfWork<Node>() {
 				@Override
 				public void execute(GraphDatabaseService database, Node n, int batchNumber, int stepNumber) {
-					expirationIndexer.indexNode(n);
-					revivalIndexer.indexNode(n);
+					LifecycleEvent.list().forEach(event -> lifecycleIndexer.indexNode(event, n));
 				}
 			}).execute();
 		}
@@ -137,54 +132,18 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		return new EmptyContext();
 	}
 
-	private void reviveRelationships(long now) {
-		int revived = 0;
-		IndexHits<Relationship> relsToRevive = revivalIndexer.candidateRelsRevivingBefore(now);
-		if (relsToRevive != null) {
-			for (Relationship relationship : relsToRevive) {
-				if (revived < config.getMaxNoExpirations()) {
-					LifecycleStrategy<Relationship> strategy = config.getRelationshipRevivalStrategy();
-					boolean didRevive = strategy.applyIfNeeded(relationship, LifecycleEvent.REVIVAL);
-					if (didRevive && strategy.removesFromIndex()) {
-						revivalIndexer.removeRelationship(relationship);
-					}
-					revived++;
-				} else {
-					break;
-				}
-			}
-		}
-	}
 
-	private void reviveNodes(long now) {
-		int revived = 0;
-		IndexHits<Node> nodesToRevive = revivalIndexer.candidateNodesRevivingBefore(now);
-		if (nodesToRevive != null) {
-			for (Node node : nodesToRevive) {
-				if (revived < config.getMaxNoExpirations()) {
-					LifecycleStrategy<Node> strategy = config.getNodeRevivalStrategy();
-					boolean didRevive = strategy.applyIfNeeded(node, LifecycleEvent.REVIVAL );
-					if (didRevive && strategy.removesFromIndex()) {
-						revivalIndexer.removeNode(node);
-					}
-					revived++;
-				} else {
-					break;
-				}
-			}
-		}
-	}
 
 	private void expireRelationships(long now) {
 		int expired = 0;
-		IndexHits<Relationship> relationshipsToExpire = expirationIndexer.candidateRelsExpiringBefore(now);
+		IndexHits<Relationship> relationshipsToExpire = lifecycleIndexer.relationshipsEligibleFor(EXPIRY, now);
 		if (relationshipsToExpire != null) {
 			for (Relationship relationship : relationshipsToExpire) {
 				if (expired < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
-					boolean didExpire = strategy.applyIfNeeded(relationship, LifecycleEvent.EXPIRY);
+					boolean didExpire = strategy.applyIfNeeded(relationship, EXPIRY);
 					if (didExpire && strategy.removesFromIndex()) {
-						expirationIndexer.removeRelationship(relationship);
+						lifecycleIndexer.removeRelationship(EXPIRY, relationship);
 					}
 					expired++;
 				} else {
@@ -196,14 +155,14 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 	private void expireNodes(long now) {
 		int expired = 0;
-		IndexHits<Node> nodesToExpire = expirationIndexer.candidateNodesExpiringBefore(now);
+		IndexHits<Node> nodesToExpire = lifecycleIndexer.nodesEligibleFor(EXPIRY, now);
 		if (nodesToExpire != null) {
 			for (Node node : nodesToExpire) {
 				if (expired < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Node> strategy = config.getNodeExpirationStrategy();
-					boolean didExpire = strategy.applyIfNeeded(node, LifecycleEvent.EXPIRY );
+					boolean didExpire = strategy.applyIfNeeded(node, EXPIRY );
 					if (didExpire && strategy.removesFromIndex()) {
-						expirationIndexer.removeNode(node);
+						lifecycleIndexer.removeNode(EXPIRY, node);
 					}
 					expired++;
 				} else {
@@ -213,17 +172,53 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		}
 	}
 
+	private void reviveRelationships(long now) {
+		int revived = 0;
+		IndexHits<Relationship> relsToRevive = lifecycleIndexer.relationshipsEligibleFor(REVIVAL, now);
+		if (relsToRevive != null) {
+			for (Relationship relationship : relsToRevive) {
+				if (revived < config.getMaxNoExpirations()) {
+					LifecycleStrategy<Relationship> strategy = config.getRelationshipRevivalStrategy();
+					boolean didRevive = strategy.applyIfNeeded(relationship, REVIVAL);
+					if (didRevive && strategy.removesFromIndex()) {
+						lifecycleIndexer.removeRelationship(REVIVAL, relationship);
+					}
+					revived++;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	private void reviveNodes(long now) {
+		int revived = 0;
+		IndexHits<Node> nodesToRevive = lifecycleIndexer.nodesEligibleFor(REVIVAL, now);
+		if (nodesToRevive != null) {
+			for (Node node : nodesToRevive) {
+				if (revived < config.getMaxNoExpirations()) {
+					LifecycleStrategy<Node> strategy = config.getNodeRevivalStrategy();
+					boolean didRevive = strategy.applyIfNeeded(node, REVIVAL );
+					if (didRevive && strategy.removesFromIndex()) {
+						lifecycleIndexer.removeNode(REVIVAL, node);
+					}
+					revived++;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
 	private void indexNewNodes(ImprovedTransactionData td) {
 		for (Node node : td.getAllCreatedNodes()) {
-			expirationIndexer.indexNode(node);
-			revivalIndexer.indexNode(node);
+			LifecycleEvent.list().forEach(event -> lifecycleIndexer.indexNode(event, node));
 		}
 	}
 
 	private void indexNewRels(ImprovedTransactionData td) {
 		for (Relationship relationship : td.getAllCreatedRelationships()) {
-			expirationIndexer.indexRelationship(relationship);
-			revivalIndexer.indexRelationship(relationship);
+			LifecycleEvent.list().forEach(event -> lifecycleIndexer.indexRelationship(event, relationship));
 		}
 	}
 
@@ -241,8 +236,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 					|| td.hasPropertyBeenDeleted(current, expProp)
 					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
 
-				expirationIndexer.removeNode(change.getPrevious());
-				expirationIndexer.indexNode(current);
+				lifecycleIndexer.removeNode(EXPIRY, change.getPrevious());
+				lifecycleIndexer.indexNode(EXPIRY, current);
 			}
 
 			//TODO: Why are we indexing deleted props?
@@ -251,8 +246,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 					|| td.hasPropertyBeenChanged(current, revivalProp)
 					|| td.hasPropertyBeenDeleted(current, expProp)) {
 
-				revivalIndexer.removeNode(change.getPrevious());
-				revivalIndexer.indexNode(current);
+				lifecycleIndexer.removeNode(REVIVAL, change.getPrevious());
+				lifecycleIndexer.indexNode(REVIVAL, current);
 			}
 
 
@@ -273,8 +268,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 					|| td.hasPropertyBeenDeleted(current, expProp)
 					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
 
-				expirationIndexer.removeRelationship(change.getPrevious());
-				expirationIndexer.indexRelationship(current);
+				lifecycleIndexer.removeRelationship(EXPIRY, change.getPrevious());
+				lifecycleIndexer.indexRelationship(EXPIRY, current);
 			}
 
 			//TODO: Why index deleted prop?
@@ -283,8 +278,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 					|| td.hasPropertyBeenChanged(current, revivalProp)
 					|| td.hasPropertyBeenDeleted(current, revivalProp)) {
 
-				revivalIndexer.removeRelationship(change.getPrevious());
-				revivalIndexer.indexRelationship(current);
+				lifecycleIndexer.removeRelationship(REVIVAL, change.getPrevious());
+				lifecycleIndexer.indexRelationship(REVIVAL, current);
 			}
 		}
 	}
