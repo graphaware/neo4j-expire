@@ -18,7 +18,7 @@ package com.graphaware.neo4j.lifecycle.strategy;
 
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.common.serialize.SingletonSerializer;
-import com.graphaware.neo4j.lifecycle.LifecycleEvent;
+import com.graphaware.neo4j.lifecycle.event.LifecycleEvent;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 

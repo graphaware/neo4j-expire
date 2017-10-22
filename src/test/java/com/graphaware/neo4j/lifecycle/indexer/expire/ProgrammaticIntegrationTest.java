@@ -557,7 +557,8 @@ public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest
 
 	private void bootstrap(LifecycleConfiguration config) {
 		GraphAwareRuntime runtime = createRuntime();
-		runtime.registerModule(new LifecyleModule("EXP", getDatabase(), config));
+		runtime.registerModule(new LifecyleModule("EXP", getDatabase(), config, config.eventRegistry(),
+				config.getMaxNoExpirations()));
 
 		runtime.start();
 		runtime.waitUntilStarted();

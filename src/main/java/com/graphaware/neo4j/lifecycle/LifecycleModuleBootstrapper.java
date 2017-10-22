@@ -16,6 +16,7 @@
 
 package com.graphaware.neo4j.lifecycle;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -23,6 +24,9 @@ import java.util.regex.Pattern;
 
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
+import com.graphaware.neo4j.lifecycle.event.ExpiryEvent;
+import com.graphaware.neo4j.lifecycle.event.LifecycleEvent;
+import com.graphaware.neo4j.lifecycle.event.RevivalEvent;
 import com.graphaware.neo4j.lifecycle.strategy.*;
 import com.graphaware.neo4j.lifecycle.utils.StrategyLoader;
 import com.graphaware.runtime.module.BaseRuntimeModuleBootstrapper;
@@ -102,7 +106,7 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<L
 		configuration = withExpiryOffset(properties, configuration);
 		configuration = withRevivalOffset(properties, configuration);
 
-		return new LifecyleModule(moduleId, database, configuration);
+		return new LifecyleModule(moduleId, database, configuration, configuration.eventRegistry(), configuration.getMaxNoExpirations());
 	}
 
 	private LifecycleConfiguration withNodeExpirationIndex(Map<String, String> properties, LifecycleConfiguration configuration) {

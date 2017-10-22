@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.graphaware.neo4j.lifecycle.LifecycleEvent;
+import com.graphaware.neo4j.lifecycle.event.LifecycleEvent;
 import org.neo4j.graphdb.PropertyContainer;
 
 /**

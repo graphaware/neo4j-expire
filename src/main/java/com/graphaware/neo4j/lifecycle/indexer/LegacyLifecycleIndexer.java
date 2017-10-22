@@ -16,30 +16,23 @@
 
 package com.graphaware.neo4j.lifecycle.indexer;
 
-import static com.graphaware.common.util.PropertyContainerUtils.id;
-import static com.graphaware.neo4j.lifecycle.LifecycleEvent.EXPIRY;
-
-import com.graphaware.common.log.LoggerFactory;
-import com.graphaware.neo4j.lifecycle.LifecycleEvent;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
-import org.neo4j.graphdb.*;
+import com.graphaware.neo4j.lifecycle.event.LifecycleEvent;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.lucene.QueryContext;
 import org.neo4j.index.lucene.ValueContext;
-import org.neo4j.logging.Log;
 
 public class LegacyLifecycleIndexer implements LifecycleIndexer {
 
-	private static final Log LOG = LoggerFactory.getLogger(LegacyLifecycleIndexer.class);
-
-
 	private GraphDatabaseService database;
-	private LifecycleConfiguration config;
 
-	public LegacyLifecycleIndexer(GraphDatabaseService database, LifecycleConfiguration config) {
+	public LegacyLifecycleIndexer(GraphDatabaseService database) {
 		this.database = database;
-		this.config = config;
 	}
 
 	/**
@@ -47,11 +40,10 @@ public class LegacyLifecycleIndexer implements LifecycleIndexer {
 	 */
 	@Override
 	public void indexNode(LifecycleEvent event, Node node) {
-		//TODO: Replace line below with polymorphism
-		Long effectiveDate = event == EXPIRY ? getExpirationDate(node) : getRevivalDate(node);
 
+		Long effectiveDate = event.effectiveDate(node);
 		if (effectiveDate != null) {
-			database.index().forNodes(config.nodeIndexFor(event))
+			database.index().forNodes(event.nodeIndex())
 					.add(node, event.name(), new ValueContext(effectiveDate).indexNumeric());
 		}
 	}
@@ -61,11 +53,10 @@ public class LegacyLifecycleIndexer implements LifecycleIndexer {
 	 */
 	@Override
 	public void indexRelationship(LifecycleEvent event, Relationship relationship) {
-		//TODO: Replace line below with polymorphism
-		Long effectiveDate = event == EXPIRY ? getExpirationDate(relationship) : getRevivalDate(relationship);
 
+		Long effectiveDate = event.effectiveDate(relationship);
 		if (effectiveDate != null) {
-			database.index().forRelationships(config.relationshipIndexFor(event))
+			database.index().forRelationships(event.relationshipIndex())
 					.add(relationship, event.name(), new ValueContext(effectiveDate).indexNumeric());
 		}
 	}
@@ -75,7 +66,7 @@ public class LegacyLifecycleIndexer implements LifecycleIndexer {
 	 */
 	@Override
 	public IndexHits<Node> nodesEligibleFor(LifecycleEvent event, long timestamp) {
-		String indexName = config.nodeIndexFor(event);
+		String indexName = event.nodeIndex();
 		if (indexName == null) {
 			return null;
 		}
@@ -96,7 +87,7 @@ public class LegacyLifecycleIndexer implements LifecycleIndexer {
 	 */
 	@Override
 	public IndexHits<Relationship> relationshipsEligibleFor(LifecycleEvent event, long timestamp) {
-		String indexName = config.relationshipIndexFor(event);
+		String indexName = event.relationshipIndex();
 		if (indexName == null) {
 			return null;
 		}
@@ -118,7 +109,7 @@ public class LegacyLifecycleIndexer implements LifecycleIndexer {
 	@Override
 	public void removeNode(LifecycleEvent event, Node node) {
 		try (Transaction tx = database.beginTx()) {
-			Index<Node> index = database.index().forNodes(config.nodeIndexFor(event));
+			Index<Node> index = database.index().forNodes(event.nodeIndex());
 			index.remove(node, event.name());
 			tx.success();
 		}
@@ -130,87 +121,10 @@ public class LegacyLifecycleIndexer implements LifecycleIndexer {
 	@Override
 	public void removeRelationship(LifecycleEvent event, Relationship relationship) {
 		try (Transaction tx = database.beginTx()) {
-			Index<Relationship> index = database.index().forRelationships(config.relationshipIndexFor(event));
+			Index<Relationship> index = database.index().forRelationships(event.relationshipIndex());
 			index.remove(relationship, event.name());
 			tx.success();
 		}
 	}
-
-	private Long getExpirationDate(Node node) {
-		return getExpirationDate(node, config.getNodeExpirationProperty(), config.getNodeTtlProperty());
-	}
-
-	private Long getExpirationDate(Relationship relationship) {
-		return getExpirationDate(relationship, config.getRelationshipExpirationProperty(), config.getRelationshipTtlProperty());
-	}
-
-	private Long getExpirationDate(PropertyContainer pc, String expirationProperty, String ttlProperty) {
-		if (!hasExpirationProperty(pc, expirationProperty, ttlProperty)) {
-			return null;
-		}
-
-		Long result = null;
-
-		if (pc.hasProperty(expirationProperty)) {
-			try {
-				long expiryOffset = config.getExpiryOffset();
-				result = Long.parseLong(pc.getProperty(expirationProperty).toString()) + expiryOffset;
-			} catch (NumberFormatException e) {
-				LOG.warn("%s expiration property is non-numeric: %s", id(pc), pc.getProperty(expirationProperty));
-			}
-		}
-
-		if (pc.hasProperty(ttlProperty)) {
-			try {
-				long newResult = System.currentTimeMillis() + Long.parseLong(pc.getProperty(ttlProperty).toString());
-
-				if (result != null) {
-					LOG.warn("%s has both expiry date and a ttl.", id(pc));
-
-					if (newResult > result) {
-						LOG.warn("Using ttl as it is later.");
-						result = newResult;
-					} else {
-						LOG.warn("Using expiry date as it is later.");
-					}
-				} else {
-					result = newResult;
-				}
-			} catch (NumberFormatException e) {
-				LOG.warn("%s ttl property is non-numeric: %s", id(pc), pc.getProperty(ttlProperty));
-			}
-		}
-
-		return result;
-	}
-
-	private boolean hasExpirationProperty(PropertyContainer pc, String expirationProperty, String ttlProperty) {
-		return (pc.hasProperty(expirationProperty) || pc.hasProperty(ttlProperty));
-	}
-
-	private Long getRevivalDate(Node node) {
-		return getRevivalDate(node, config.getNodeRevivalProperty());
-	}
-
-	private Long getRevivalDate(Relationship relationship) {
-		return getRevivalDate(relationship, config.getRelationshipRevivalProperty());
-	}
-
-	private Long getRevivalDate(PropertyContainer pc, String revivalProperty) {
-
-		Long result = null;
-
-		if (pc.hasProperty(revivalProperty)) {
-			try {
-				long revivalOffset = config.getRevivalOffset();
-				result = Long.parseLong(pc.getProperty(revivalProperty).toString()) + revivalOffset;
-			} catch (NumberFormatException e) {
-				LOG.warn("%s revival property is non-numeric: %s", id(pc), pc.getProperty(revivalProperty));
-			}
-		}
-
-		return result;
-	}
-
 
 }

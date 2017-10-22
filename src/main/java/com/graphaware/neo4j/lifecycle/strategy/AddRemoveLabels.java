@@ -16,22 +16,22 @@
 
 package com.graphaware.neo4j.lifecycle.strategy;
 
-import static com.graphaware.neo4j.lifecycle.LifecycleEvent.*;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
 import com.graphaware.common.serialize.Serializer;
 import com.graphaware.common.serialize.SingletonSerializer;
-import com.graphaware.neo4j.lifecycle.LifecycleEvent;
+import com.graphaware.neo4j.lifecycle.event.ExpiryEvent;
+import com.graphaware.neo4j.lifecycle.event.LifecycleEvent;
+import com.graphaware.neo4j.lifecycle.event.RevivalEvent;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 
 
 public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 
-	private EnumMap<LifecycleEvent, List<String>> labelsToAdd = new EnumMap<>(LifecycleEvent.class);
-	private EnumMap<LifecycleEvent, List<String>> labelsToRemove = new EnumMap<>(LifecycleEvent.class);
+	private Map<String, List<String>> labelsToAdd = new HashMap<>();
+	private Map<String, List<String>> labelsToRemove = new HashMap<>();
 
 	static {
 		Serializer.register(AddRemoveLabels.class, new SingletonSerializer());
@@ -46,30 +46,28 @@ public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 	private AddRemoveLabels() {
 	}
 
-	public EnumMap<LifecycleEvent, List<String>> getLabelsToAdd() {
-		return labelsToAdd;
-	}
-
-	public EnumMap<LifecycleEvent, List<String>> getLabelsToRemove() {
-		return labelsToRemove;
-	}
 
 	@Override
 	public void setConfig(Map<String, String> config) {
 		super.setConfig(config);
-		labelsToAdd.put(EXPIRY, toList(config, "nodeExpirationStrategy.labelsToAdd"));
-		labelsToRemove.put(EXPIRY, toList(config, "nodeExpirationStrategy.labelsToRemove"));
-		labelsToAdd.put(REVIVAL, toList(config, "nodeRevivalStrategy.labelsToAdd"));
-		labelsToRemove.put(REVIVAL, toList(config, "nodeRevivalStrategy.labelsToRemove"));
+
+		//TODO: Fragile dependency on event.name() and event.class.getSimpleName being the same
+		String expiryEventName = ExpiryEvent.class.getSimpleName();
+		String revivalEventName = RevivalEvent.class.getSimpleName();
+
+		labelsToAdd.put(expiryEventName, toList(config, "nodeExpirationStrategy.labelsToAdd"));
+		labelsToRemove.put(expiryEventName, toList(config, "nodeExpirationStrategy.labelsToRemove"));
+
+		labelsToAdd.put(revivalEventName, toList(config, "nodeRevivalStrategy.labelsToAdd"));
+		labelsToRemove.put(revivalEventName, toList(config, "nodeRevivalStrategy.labelsToRemove"));
 	}
 
 	@Override
 	public boolean applyIfNeeded(Node node, LifecycleEvent event) {
-		System.out.println("Event: " + event);
-		for (String label : this.labelsToRemove.get(event)) {
+		for (String label : this.labelsToRemove.get(event.name())) {
 			node.removeLabel(Label.label(label));
 		}
-		for (String label : this.labelsToAdd.get(event)) {
+		for (String label : this.labelsToAdd.get(event.name())) {
 			node.addLabel(Label.label(label));
 		}
 		return true;
