@@ -16,8 +16,6 @@
 
 package com.graphaware.neo4j.lifecycle.event;
 
-import javax.management.relation.Relation;
-
 import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
 import org.neo4j.graphdb.Node;

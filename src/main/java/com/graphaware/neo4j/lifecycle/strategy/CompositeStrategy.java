@@ -46,14 +46,14 @@ public class CompositeStrategy<P extends PropertyContainer> extends LifecycleStr
 
 	@Override
 	public boolean applyIfNeeded(P pc, LifecycleEvent event) {
-		boolean allExpired = true;
+		boolean allApplied = true;
 		for (LifecycleStrategy<P> strategy : strategies) {
 			boolean expired = strategy.applyIfNeeded(pc, event);
 			if (!expired) {
-				allExpired = false;
+				allApplied = false;
 			}
 		}
-		return allExpired;
+		return allApplied;
 	}
 
 	@Override

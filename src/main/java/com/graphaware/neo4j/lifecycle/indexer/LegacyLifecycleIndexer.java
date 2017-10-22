@@ -16,7 +16,6 @@
 
 package com.graphaware.neo4j.lifecycle.indexer;
 
-import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
 import com.graphaware.neo4j.lifecycle.event.LifecycleEvent;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;

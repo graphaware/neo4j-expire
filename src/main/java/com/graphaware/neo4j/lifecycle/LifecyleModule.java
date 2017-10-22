@@ -72,9 +72,9 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 	@Override
 	public Void beforeCommit(ImprovedTransactionData td) throws DeliberateTransactionRollbackException {
 		indexNewNodes(td);
-		indexNewRels(td);
+		indexNewRelationships(td);
 		indexChangedNodes(td);
-		indexChangedRels(td);
+		indexChangedRelationships(td);
 		return null;
 	}
 
@@ -183,7 +183,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		}
 	}
 
-	private void indexNewRels(ImprovedTransactionData td) {
+	private void indexNewRelationships(ImprovedTransactionData td) {
 		for (Relationship relationship : td.getAllCreatedRelationships()) {
 			eventRegistry.getEvents().forEach(event -> lifecycleIndexer.indexRelationship(event, relationship));
 		}
@@ -204,7 +204,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		}
 	}
 
-	private void indexChangedRels(ImprovedTransactionData td) {
+	private void indexChangedRelationships(ImprovedTransactionData td) {
 		for (Change<Relationship> change : td.getAllChangedRelationships()) {
 			Relationship current = change.getCurrent();
 
