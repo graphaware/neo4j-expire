@@ -75,7 +75,7 @@ public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 		return true;
 	}
 
-	List<String> toList(Map<String, String> config, String propertyName) {
+	private List<String> toList(Map<String, String> config, String propertyName) {
 		String labelsToRemove = config.get(propertyName);
 		if (labelsToRemove != null) {
 			labelsToRemove = labelsToRemove.replaceAll("^\\[|]$", "");

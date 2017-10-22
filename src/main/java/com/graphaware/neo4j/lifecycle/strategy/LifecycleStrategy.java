@@ -44,12 +44,4 @@ public abstract class LifecycleStrategy<P extends PropertyContainer> {
 	 */
 	public abstract boolean applyIfNeeded(P pc, LifecycleEvent event);
 
-	/**
-	 * Override to determine if the expired PropertyContainer is removed from the index.
-	 *
-	 * @return
-	 */
-	public boolean removesFromIndex() {
-		return true;
-	}
 }

@@ -142,7 +142,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 				if (expired < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
 					boolean didExpire = strategy.applyIfNeeded(relationship, EXPIRY);
-					if (didExpire && strategy.removesFromIndex()) {
+					if (didExpire) {
 						lifecycleIndexer.removeRelationship(EXPIRY, relationship);
 					}
 					expired++;
@@ -161,7 +161,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 				if (expired < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Node> strategy = config.getNodeExpirationStrategy();
 					boolean didExpire = strategy.applyIfNeeded(node, EXPIRY );
-					if (didExpire && strategy.removesFromIndex()) {
+					if (didExpire) {
 						lifecycleIndexer.removeNode(EXPIRY, node);
 					}
 					expired++;
@@ -180,7 +180,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 				if (revived < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Relationship> strategy = config.getRelationshipRevivalStrategy();
 					boolean didRevive = strategy.applyIfNeeded(relationship, REVIVAL);
-					if (didRevive && strategy.removesFromIndex()) {
+					if (didRevive) {
 						lifecycleIndexer.removeRelationship(REVIVAL, relationship);
 					}
 					revived++;
@@ -199,7 +199,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 				if (revived < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Node> strategy = config.getNodeRevivalStrategy();
 					boolean didRevive = strategy.applyIfNeeded(node, REVIVAL );
-					if (didRevive && strategy.removesFromIndex()) {
+					if (didRevive) {
 						lifecycleIndexer.removeNode(REVIVAL, node);
 					}
 					revived++;

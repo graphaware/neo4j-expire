@@ -57,17 +57,6 @@ public class CompositeStrategy<P extends PropertyContainer> extends LifecycleStr
 	}
 
 	@Override
-	public boolean removesFromIndex() {
-		boolean removes = true;
-		for (LifecycleStrategy<P> strategy : strategies) {
-			if (!strategy.removesFromIndex()) {
-				removes = false;
-			}
-		}
-		return removes;
-	}
-
-	@Override
 	public void setConfig(Map<String, String> config) {
 		super.setConfig(config);
 		for (LifecycleStrategy<P> strategy : strategies) {
