@@ -25,16 +25,43 @@ import org.neo4j.graphdb.Relationship;
 
 public interface LifecycleEvent {
 
+	/**
+	 * Evaluates the date, if any, on which this lifecycle event will be executed for a given node.
+	 * @param node to evaluate.
+	 * @return execution date.
+	 */
 	Long effectiveDate(Node node);
 
+	/**
+	 * Evaluates the date, if any, on which this lifecycle event will be executed for a given relationship.
+	 * @param relationship to evaluate.
+	 * @return execution date.
+	 */
 	Long effectiveDate(Relationship relationship);
 
+	/**
+	 * The node index name for this lifecycle event. If the event does not apply to nodes, it should return null.
+	 */
 	String nodeIndex();
 
+	/**
+	 * The relationship index name for this lifecycle event. If the event does not apply to relationships, it should
+	 * return null.
+	 */
 	String relationshipIndex();
 
+	/**
+	 * The strategy to apply on nodes, if any, when this lifecycle event fires. This may be a CompositeStrategy, if
+	 * multiple actions are required, or null if the event does not apply to nodes.
+	 * @see com.graphaware.neo4j.lifecycle.strategy.CompositeStrategy
+	 */
 	LifecycleStrategy<Node> nodeStrategy();
 
+	/**
+	 * The strategy to apply on nodes, if any, when this lifecycle event fires. This may be a CompositeStrategy, if
+	 * multiple actions are required, or null if the event does not apply to relationships.
+	 * @see com.graphaware.neo4j.lifecycle.strategy.CompositeStrategy
+	 */
 	LifecycleStrategy<Relationship> relationshipStrategy();
 
 	boolean shouldIndex(Node node, ImprovedTransactionData td);
