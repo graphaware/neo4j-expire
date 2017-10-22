@@ -48,7 +48,7 @@ public class AddRemoveLabelsExpiryRevivalTest extends GraphAwareIntegrationTest 
 
     waitFor(200);
 
-    //It is an active profile now
+    //It immediately qualifies for revival
     assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:ActiveProfile:Bar {name:'Anne', lastActive:" +
             fiveSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + fiveSecondsAgo + "})");
 
@@ -61,6 +61,15 @@ public class AddRemoveLabelsExpiryRevivalTest extends GraphAwareIntegrationTest 
     //label not applied because of inclusion policies
     assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foo {name:'Anne', lastActive:" +
             fiveSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + fiveSecondsAgo + "})");
+
+    now = System.currentTimeMillis();
+    getDatabase().execute("MATCH (c1:CandidateProfile {name:'Anne'}) set c1.lastActive = " + now);
+
+    waitFor(500);
+
+    //It revives again, based on last active date
+    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:ActiveProfile:Bar {name:'Anne', lastActive:" +
+            now + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + fiveSecondsAgo + "})");
 
   }
 }

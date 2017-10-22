@@ -65,6 +65,7 @@ public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 
 	@Override
 	public boolean applyIfNeeded(Node node, LifecycleEvent event) {
+		System.out.println("Event: " + event);
 		for (String label : this.labelsToRemove.get(event)) {
 			node.removeLabel(Label.label(label));
 		}
