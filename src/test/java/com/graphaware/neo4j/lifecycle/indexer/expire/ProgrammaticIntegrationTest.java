@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire;
+package com.graphaware.neo4j.lifecycle.indexer.expire;
 
 import com.graphaware.common.util.IterableUtils;
 import com.graphaware.neo4j.lifecycle.LifecyleModule;

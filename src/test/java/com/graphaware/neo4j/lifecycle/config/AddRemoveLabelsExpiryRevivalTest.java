@@ -25,13 +25,13 @@ import com.graphaware.test.integration.GraphAwareIntegrationTest;
 import org.junit.Test;
 import org.neo4j.graphdb.Transaction;
 
-public class FullAddRemoveLabelsConfigExpiryTest extends GraphAwareIntegrationTest {
+public class AddRemoveLabelsExpiryRevivalTest extends GraphAwareIntegrationTest {
 
   private static final long SECOND = 1_000;
 
   @Override
   protected String configFile() {
-    return "neo4j-expire-full-set-labels.conf";
+    return "neo4j-expire-revive-set-labels.conf";
   }
 
   @Test
@@ -54,17 +54,12 @@ public class FullAddRemoveLabelsConfigExpiryTest extends GraphAwareIntegrationTe
     waitFor(10100 - (System.currentTimeMillis() - now));
 
     //Labels applied
-    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foobar {name:'Anne', lastActive:" +
+    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foo {name:'Anne', lastActive:" +
             nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
 
     //label not applied because of inclusion policies
-    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foobar {name:'Anne', lastActive:" +
+    assertSameGraph(getDatabase(), "CREATE (c1:CandidateProfile:InactiveProfile:Foo {name:'Anne', lastActive:" +
             nineSecondsAgo + "})-[:LIKES]->(a1:Artist {name:'Leonard Cohen', lastActive:" + nineSecondsAgo + "})");
 
-    try (Transaction tx = getDatabase().beginTx()) {
-      assertTrue(getDatabase().index().existsForNodes("nodeExp"));
-      assertTrue(getDatabase().index().existsForRelationships("relExp"));
-      tx.success();
-    }
   }
 }

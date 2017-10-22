@@ -16,6 +16,8 @@
 
 package com.graphaware.neo4j.lifecycle.strategy;
 
+import static com.graphaware.neo4j.lifecycle.LifecycleEvent.EXPIRY;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,13 +81,16 @@ public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 
 	@Override
 	public boolean applyIfNeeded(Node node, LifecycleEvent event) {
-		for (String label : this.labelsToRemove) {
-			node.removeLabel(Label.label(label));
+		System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " + event);
+		if (event == EXPIRY) {
+			for (String label : this.labelsToRemove) {
+				node.removeLabel(Label.label(label));
+			}
+			for (String label : this.labelsToAdd) {
+				node.addLabel(Label.label(label));
+			}
+			return true;
 		}
-		for (String label : this.labelsToAdd) {
-			node.addLabel(Label.label(label));
-		}
-
-		return true;
+		return false;
 	}
 }

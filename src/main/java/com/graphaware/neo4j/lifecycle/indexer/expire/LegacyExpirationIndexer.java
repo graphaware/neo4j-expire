@@ -14,7 +14,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire.indexer;
+package com.graphaware.neo4j.lifecycle.indexer.expire;
 
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
@@ -35,15 +35,12 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
 	private static final Log LOG = LoggerFactory.getLogger(LegacyExpirationIndexer.class);
 	private static final String EXPIRE = "_expire";
 
-
 	private GraphDatabaseService database;
 	private LifecycleConfiguration configuration;
-	private long expiryOffset;
 
 	public LegacyExpirationIndexer(GraphDatabaseService database, LifecycleConfiguration configuration) {
 		this.database = database;
 		this.configuration = configuration;
-		this.expiryOffset = configuration.getExpiryOffset();
 	}
 
 	/**
@@ -155,12 +152,11 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
 
 		if (pc.hasProperty(expirationProperty)) {
 			try {
-				result = Long.parseLong(pc.getProperty(expirationProperty).toString()) + expiryOffset;
+				result = Long.parseLong(pc.getProperty(expirationProperty).toString()) + configuration.getExpiryOffset();
 			} catch (NumberFormatException e) {
 				LOG.warn("%s expiration property is non-numeric: %s", id(pc), pc.getProperty(expirationProperty));
 			}
 		}
-
 
 		if (pc.hasProperty(ttlProperty)) {
 			try {

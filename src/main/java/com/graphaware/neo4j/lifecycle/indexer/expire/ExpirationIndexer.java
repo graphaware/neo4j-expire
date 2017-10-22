@@ -14,12 +14,13 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.lifecycle.expire.indexer;
+package com.graphaware.neo4j.lifecycle.indexer.expire;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.IndexHits;
 
+//TODO: Merge into single lifecycle aware indexer
 /**
  * A component responsible for handling the indexing of expiry dates on nodes and relationships.
  */

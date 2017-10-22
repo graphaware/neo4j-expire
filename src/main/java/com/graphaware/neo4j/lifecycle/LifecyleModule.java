@@ -19,8 +19,10 @@ package com.graphaware.neo4j.lifecycle;
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
-import com.graphaware.neo4j.lifecycle.expire.indexer.ExpirationIndexer;
-import com.graphaware.neo4j.lifecycle.expire.indexer.LegacyExpirationIndexer;
+import com.graphaware.neo4j.lifecycle.indexer.expire.ExpirationIndexer;
+import com.graphaware.neo4j.lifecycle.indexer.expire.LegacyExpirationIndexer;
+import com.graphaware.neo4j.lifecycle.indexer.revive.LegacyRevivalIndexer;
+import com.graphaware.neo4j.lifecycle.indexer.revive.RevivalIndexer;
 import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import com.graphaware.runtime.config.BaseTxAndTimerDrivenModuleConfiguration;
 import com.graphaware.runtime.metadata.EmptyContext;
@@ -48,7 +50,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 	private static final Log LOG = LoggerFactory.getLogger(LifecyleModule.class);
 
-	private final ExpirationIndexer indexer;
+	private final ExpirationIndexer expirationIndexer;
+	private final RevivalIndexer revivalIndexer;
 	private final LifecycleConfiguration config;
 
 	public LifecyleModule(String moduleId, GraphDatabaseService database, LifecycleConfiguration config) {
@@ -56,54 +59,17 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 		config.validate();
 
-		this.indexer = new LegacyExpirationIndexer(database, config);
+		this.expirationIndexer = new LegacyExpirationIndexer(database, config);
+		this.revivalIndexer = new LegacyRevivalIndexer(database, config);
 		this.config = config;
 	}
 
 	@Override
 	public Void beforeCommit(ImprovedTransactionData td) throws DeliberateTransactionRollbackException {
-		for (Node node : td.getAllCreatedNodes()) {
-			indexer.indexNode(node);
-		}
-
-		for (Relationship relationship : td.getAllCreatedRelationships()) {
-			indexer.indexRelationship(relationship);
-		}
-
-		for (Change<Node> change : td.getAllChangedNodes()) {
-			Node current = change.getCurrent();
-			String expProp = config.getNodeExpirationProperty();
-			String ttlProp = config.getNodeTtlProperty();
-
-			if (td.hasPropertyBeenCreated(current, expProp)
-					|| td.hasPropertyBeenCreated(current, ttlProp)
-					|| td.hasPropertyBeenChanged(current, expProp)
-					|| td.hasPropertyBeenChanged(current, ttlProp)
-					|| td.hasPropertyBeenDeleted(current, expProp)
-					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
-
-				indexer.removeNode(change.getPrevious());
-				indexer.indexNode(current);
-			}
-		}
-
-		for (Change<Relationship> change : td.getAllChangedRelationships()) {
-			Relationship current = change.getCurrent();
-			String expProp = config.getRelationshipExpirationProperty();
-			String ttlProp = config.getRelationshipTtlProperty();
-
-			if (td.hasPropertyBeenCreated(current, expProp)
-					|| td.hasPropertyBeenCreated(current, ttlProp)
-					|| td.hasPropertyBeenChanged(current, expProp)
-					|| td.hasPropertyBeenChanged(current, ttlProp)
-					|| td.hasPropertyBeenDeleted(current, expProp)
-					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
-
-				indexer.removeRelationship(change.getPrevious());
-				indexer.indexRelationship(current);
-			}
-		}
-
+		indexNewNodes(td);
+		indexNewRels(td);
+		indexChangedNodes(td);
+		indexChangedRels(td);
 		return null;
 	}
 
@@ -117,7 +83,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 			new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllRelationships(database, batchSize), new UnitOfWork<Relationship>() {
 				@Override
 				public void execute(GraphDatabaseService database, Relationship r, int batchNumber, int stepNumber) {
-					indexer.indexRelationship(r);
+					expirationIndexer.indexRelationship(r);
+					revivalIndexer.indexRelationship(r);
 				}
 			}).execute();
 		}
@@ -128,10 +95,13 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 			new IterableInputBatchTransactionExecutor<>(database, batchSize, new AllNodes(database, batchSize), new UnitOfWork<Node>() {
 				@Override
 				public void execute(GraphDatabaseService database, Node n, int batchNumber, int stepNumber) {
-					indexer.indexNode(n);
+					expirationIndexer.indexNode(n);
+					revivalIndexer.indexNode(n);
 				}
 			}).execute();
 		}
+
+
 	}
 
 	/**
@@ -157,6 +127,8 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 	public TimerDrivenModuleContext doSomeWork(TimerDrivenModuleContext timerDrivenModuleContext, GraphDatabaseService graphDatabaseService) {
 		long now = System.currentTimeMillis();
 
+		reviveRelationships(now);
+		reviveNodes(now);
 		expireRelationships(now);
 		expireNodes(now);
 
@@ -165,14 +137,14 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 	private void expireRelationships(long now) {
 		int expired = 0;
-		IndexHits<Relationship> relationshipsToExpire = indexer.candidateRelsExpiringBefore(now);
+		IndexHits<Relationship> relationshipsToExpire = expirationIndexer.candidateRelsExpiringBefore(now);
 		if (relationshipsToExpire != null) {
 			for (Relationship relationship : relationshipsToExpire) {
 				if (expired < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Relationship> strategy = config.getRelationshipExpirationStrategy();
 					boolean didExpire = strategy.applyIfNeeded(relationship, LifecycleEvent.EXPIRY);
 					if (didExpire && strategy.removesFromIndex()) {
-						indexer.removeRelationship(relationship);
+						expirationIndexer.removeRelationship(relationship);
 					}
 					expired++;
 				} else {
@@ -184,14 +156,17 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 	private void expireNodes(long now) {
 		int expired = 0;
-		IndexHits<Node> nodesToExpire = indexer.candidateNodesExpiringBefore(now);
+		IndexHits<Node> nodesToExpire = expirationIndexer.candidateNodesExpiringBefore(now);
 		if (nodesToExpire != null) {
 			for (Node node : nodesToExpire) {
 				if (expired < config.getMaxNoExpirations()) {
 					LifecycleStrategy<Node> strategy = config.getNodeExpirationStrategy();
 					boolean didExpire = strategy.applyIfNeeded(node, LifecycleEvent.EXPIRY );
 					if (didExpire && strategy.removesFromIndex()) {
-						indexer.removeNode(node);
+						expirationIndexer.removeNode(node);
+					}
+					else {
+						System.out.println("nope!");
 					}
 					expired++;
 				} else {
@@ -201,4 +176,117 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		}
 	}
 
+	private void reviveRelationships(long now) {
+		int revived = 0;
+		IndexHits<Relationship> relsToRevive = revivalIndexer.candidateRelsRevivingBefore(now);
+		if (relsToRevive != null) {
+			for (Relationship relationship : relsToRevive) {
+				if (revived < config.getMaxNoExpirations()) {
+					LifecycleStrategy<Relationship> strategy = config.getRelationshipRevivalStrategy();
+					boolean didRevive = strategy.applyIfNeeded(relationship, LifecycleEvent.REVIVAL);
+					if (didRevive && strategy.removesFromIndex()) {
+						revivalIndexer.removeRelationship(relationship);
+					}
+					revived++;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	private void reviveNodes(long now) {
+		int revived = 0;
+		IndexHits<Node> nodesToRevive = revivalIndexer.candidateNodesRevivingBefore(now);
+		if (nodesToRevive != null) {
+			for (Node node : nodesToRevive) {
+				if (revived < config.getMaxNoExpirations()) {
+					LifecycleStrategy<Node> strategy = config.getNodeRevivalStrategy();
+					boolean didRevive = strategy.applyIfNeeded(node, LifecycleEvent.REVIVAL );
+					if (didRevive && strategy.removesFromIndex()) {
+						revivalIndexer.removeNode(node);
+					}
+					revived++;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	private void indexNewNodes(ImprovedTransactionData td) {
+		for (Node node : td.getAllCreatedNodes()) {
+			expirationIndexer.indexNode(node);
+			revivalIndexer.indexNode(node);
+		}
+	}
+
+	private void indexNewRels(ImprovedTransactionData td) {
+		for (Relationship relationship : td.getAllCreatedRelationships()) {
+			expirationIndexer.indexRelationship(relationship);
+			revivalIndexer.indexRelationship(relationship);
+		}
+	}
+
+	private void indexChangedNodes(ImprovedTransactionData td) {
+		for (Change<Node> change : td.getAllChangedNodes()) {
+			Node current = change.getCurrent();
+
+			String expProp = config.getNodeExpirationProperty();
+			String ttlProp = config.getNodeTtlProperty();
+
+			if (td.hasPropertyBeenCreated(current, expProp)
+					|| td.hasPropertyBeenCreated(current, ttlProp)
+					|| td.hasPropertyBeenChanged(current, expProp)
+					|| td.hasPropertyBeenChanged(current, ttlProp)
+					|| td.hasPropertyBeenDeleted(current, expProp)
+					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
+
+				expirationIndexer.removeNode(change.getPrevious());
+				expirationIndexer.indexNode(current);
+			}
+
+			//TODO: Why are we indexing deleted props?
+			String revivalProp = config.getNodeRevivalProperty();
+			if (td.hasPropertyBeenCreated(current, revivalProp)
+					|| td.hasPropertyBeenChanged(current, revivalProp)
+					|| td.hasPropertyBeenDeleted(current, expProp)) {
+
+				revivalIndexer.removeNode(change.getPrevious());
+				revivalIndexer.indexNode(current);
+			}
+
+
+		}
+	}
+
+	private void indexChangedRels(ImprovedTransactionData td) {
+		for (Change<Relationship> change : td.getAllChangedRelationships()) {
+			Relationship current = change.getCurrent();
+
+			String expProp = config.getRelationshipExpirationProperty();
+			String ttlProp = config.getRelationshipTtlProperty();
+
+			if (td.hasPropertyBeenCreated(current, expProp)
+					|| td.hasPropertyBeenCreated(current, ttlProp)
+					|| td.hasPropertyBeenChanged(current, expProp)
+					|| td.hasPropertyBeenChanged(current, ttlProp)
+					|| td.hasPropertyBeenDeleted(current, expProp)
+					|| td.hasPropertyBeenDeleted(current, ttlProp)) {
+
+				expirationIndexer.removeRelationship(change.getPrevious());
+				expirationIndexer.indexRelationship(current);
+			}
+
+			//TODO: Why index deleted prop?
+			String revivalProp = config.getRelationshipRevivalProperty();
+			if (td.hasPropertyBeenCreated(current, revivalProp)
+					|| td.hasPropertyBeenChanged(current, revivalProp)
+					|| td.hasPropertyBeenDeleted(current, revivalProp)) {
+
+				revivalIndexer.removeRelationship(change.getPrevious());
+				revivalIndexer.indexRelationship(current);
+			}
+		}
+	}
 }

@@ -26,20 +26,20 @@ import com.graphaware.neo4j.lifecycle.strategy.DeleteRelationship;
 import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import org.junit.Test;
 
-public class SingletonResolverTest {
+public class StrategyLoaderTest {
 
 	@Test
 	public void shouldResolveListOfClassNames() throws Exception {
-		SingletonResolver<? extends LifecycleStrategy> resolver = new SingletonResolver<>();
+		StrategyLoader<? extends LifecycleStrategy> resolver = new StrategyLoader<>();
 		List<String> classNames = singletonList("com.graphaware.neo4j.lifecycle.strategy.AddRemoveLabels");
-		List<? extends LifecycleStrategy> strategies = resolver.resolve(classNames);
+		List<? extends LifecycleStrategy> strategies = resolver.load(classNames);
 		assertEquals(AddRemoveLabels.getInstance(), strategies.get(0));
 	}
 
 	@Test
 	public void shouldResolveCommaSeparatedListOfClassNames() throws Exception {
-		SingletonResolver<? extends LifecycleStrategy> resolver = new SingletonResolver<>();
-		List<? extends LifecycleStrategy> strategies = resolver.resolve(
+		StrategyLoader<? extends LifecycleStrategy> resolver = new StrategyLoader<>();
+		List<? extends LifecycleStrategy> strategies = resolver.load(
 				"com.graphaware.neo4j.lifecycle.strategy.AddRemoveLabels ,    com.graphaware.neo4j.lifecycle" +
 						".strategy.DeleteRelationship");
 		assertEquals(AddRemoveLabels.getInstance(), strategies.get(0));

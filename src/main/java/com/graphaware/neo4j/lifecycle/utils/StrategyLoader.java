@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-public class SingletonResolver<T> {
+public class StrategyLoader<T> {
 
 	/**
 	 * Returns singleton instances given a comma-separated list of class names.
 	 */
-	public List<T> resolve(String classNames) {
-		return resolve(Arrays.stream(classNames.split(",")).map(String::trim).collect(Collectors.toList()));
+	public List<T> load(String classNames) {
+		return load(Arrays.stream(classNames.split(",")).map(String::trim).collect(Collectors.toList()));
 	}
 
 	/**
@@ -38,7 +38,7 @@ public class SingletonResolver<T> {
 	 *
 	 * @throws IllegalArgumentException
 	 */
-	public List<T> resolve(List<String> classNames) {
+	public List<T> load(List<String> classNames) {
 		List<T> results = new ArrayList<>();
 		for (String className : classNames) {
 			try {

@@ -60,7 +60,7 @@ public class CompositeStrategy<P extends PropertyContainer> extends LifecycleStr
 	public boolean removesFromIndex() {
 		boolean removes = true;
 		for (LifecycleStrategy<P> strategy : strategies) {
-			if (strategy.removesFromIndex()) {
+			if (!strategy.removesFromIndex()) {
 				removes = false;
 			}
 		}
