@@ -3,11 +3,18 @@ GraphAware Neo4j Lifecycle
 
 [![Build Status](https://travis-ci.org/graphaware/neo4j-expire.png)](https://travis-ci.org/graphaware/neo4j-expire) | <a href="http://graphaware.com/products/" target="_blank">Products</a> | <a href="http://products.graphaware.com" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/expire/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 3.2.5.51.4
 
-GraphAware Neo4j Lifecycle is a simple library that performs state mutations on nodes or relationships when one of two time-triggered life-cycle events occurs - expiry or revival. Several common 'out of the box' actions are implemented, or you can plug in your own. Example usages are: 
+GraphAware Neo4j Lifecycle is a simple library that performs state mutations on nodes or relationships when time-triggered life-cycle events occur. Arbitrary events can be registered with the module, however out-of-the-box there are two - 'expiry' and 'revival'.
 
-- Automatically delete nodes and relationships from the database when they've reached their expiration date or time-to-live (TTL).
-- Add or remove labels on a user profile node, based on last sign in date. 
-- When a node expires, create new relationships based on its state at that point. Unread items in an inbox, for example. 
+Each life-cycle event is specified to occur on, or after a date that the event is responsible for calculating. When it fires a task, or set of tasks perform actions.
+
+Some example usages are:
+
+- Automatically delete nodes and relationships from the database when they've reached their expiration date or 
+time-to-live (TTL).
+- Given a marketing platform that contains SalesLead nodes, qualify these as SalesLead:Active or SalesLead:Inactive 
+based on lastActive date.
+- When a node expires, create new relationships based on its state at that point, for example, unread items in an 
+inbox. 
 
 Getting the Software
 --------------------
