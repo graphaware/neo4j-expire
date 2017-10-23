@@ -17,11 +17,11 @@
 package com.graphaware.neo4j.lifecycle.config;
 
 import java.util.Arrays;
+import java.util.List;
 
 import com.graphaware.common.policy.inclusion.InclusionPolicies;
 import com.graphaware.common.policy.role.InstanceRolePolicy;
 import com.graphaware.common.policy.role.WritableRole;
-import com.graphaware.neo4j.lifecycle.LifecycleEventRegistry;
 import com.graphaware.neo4j.lifecycle.event.ExpiryEvent;
 import com.graphaware.neo4j.lifecycle.event.LifecycleEvent;
 import com.graphaware.neo4j.lifecycle.LifecyleModule;
@@ -78,7 +78,7 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
     private int maxNoExpirations;
     private long expiryOffset;
     private long revivalOffset;
-    private LifecycleEventRegistry eventRegistry;
+    private List<LifecycleEvent> events;
 
     /**
      * Construct a new configuration.
@@ -317,13 +317,13 @@ public class LifecycleConfiguration extends BaseTxAndTimerDrivenModuleConfigurat
 
     public int getMaxNoExpirations() { return maxNoExpirations; }
 
-    public LifecycleEventRegistry eventRegistry() {
-        if (eventRegistry == null) {
+    public List<LifecycleEvent> getEvents() {
+        if (events == null) {
             LifecycleEvent expiryEvent = new ExpiryEvent(getNodeExpirationProperty(), getNodeTtlProperty(), getRelationshipExpirationProperty(), getRelationshipTtlProperty(), getExpiryOffset(), getNodeExpirationIndex(), getRelationshipExpirationIndex(), getNodeExpirationStrategy(), getRelationshipExpirationStrategy());
             LifecycleEvent revivalEvent = new RevivalEvent(getNodeRevivalProperty(), getRelationshipRevivalProperty(), getRevivalOffset(), getNodeRevivalIndex(), getRelationshipRevivalIndex(), getNodeRevivalStrategy(), getRelationshipRevivalStrategy());
-            eventRegistry = new LifecycleEventRegistry(Arrays.asList(expiryEvent, revivalEvent));
+            events = Arrays.asList(expiryEvent, revivalEvent);
         }
-        return eventRegistry;
+        return events;
     }
 
     @Override

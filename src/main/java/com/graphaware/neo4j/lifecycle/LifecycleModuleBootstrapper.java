@@ -106,7 +106,8 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<L
 		configuration = withExpiryOffset(properties, configuration);
 		configuration = withRevivalOffset(properties, configuration);
 
-		return new LifecyleModule(moduleId, database, configuration, configuration.eventRegistry(), configuration.getMaxNoExpirations());
+		return new LifecyleModule(moduleId, database, configuration, configuration.getEvents(),
+				configuration.getMaxNoExpirations());
 	}
 
 	private LifecycleConfiguration withNodeExpirationIndex(Map<String, String> properties, LifecycleConfiguration configuration) {

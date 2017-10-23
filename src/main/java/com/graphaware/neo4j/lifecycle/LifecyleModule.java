@@ -17,6 +17,8 @@
 package com.graphaware.neo4j.lifecycle;
 
 
+import java.util.List;
+
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.common.util.Change;
 import com.graphaware.neo4j.lifecycle.config.LifecycleConfiguration;
@@ -51,21 +53,21 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 	private final LifecycleIndexer lifecycleIndexer;
 	private final LifecycleConfiguration config;
-	private final LifecycleEventRegistry eventRegistry;
+	private final List<LifecycleEvent> events;
 	private final int batchSize;
 
 
 	public LifecyleModule(String moduleId,
 	                      GraphDatabaseService database,
 	                      LifecycleConfiguration config,
-	                      LifecycleEventRegistry eventRegistry,
+	                      List<LifecycleEvent> events,
 	                      int batchSize) {
 		super(moduleId);
 
 		config.validate();
 		this.lifecycleIndexer = new LegacyLifecycleIndexer(database);
 		this.config = config;
-		this.eventRegistry = eventRegistry;
+		this.events = events;
 		this.batchSize = batchSize;
 	}
 
@@ -82,7 +84,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 	public void initialize(GraphDatabaseService database) {
 		int batchSize = 1000;
 
-		eventRegistry.getEvents().forEach(lifecycleEvent -> {
+		events.forEach(lifecycleEvent -> {
 			if (lifecycleEvent.relationshipIndex() != null) {
 				LOG.info("Looking at all relationships to see if they have an expiry date or TTL...");
 
@@ -132,7 +134,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		long now = System.currentTimeMillis();
 
 		//TODO: Can we use concurrent streams for performance here?
-		eventRegistry.getEvents().forEach(lifecycleEvent -> {
+		events.forEach(lifecycleEvent -> {
 			applyToRelationships(lifecycleEvent, now);
 			applyToNodes(lifecycleEvent, now);
 		});
@@ -179,13 +181,13 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 
 	private void indexNewNodes(ImprovedTransactionData td) {
 		for (Node node : td.getAllCreatedNodes()) {
-			eventRegistry.getEvents().forEach(event -> lifecycleIndexer.indexNode(event, node));
+			events.forEach(event -> lifecycleIndexer.indexNode(event, node));
 		}
 	}
 
 	private void indexNewRelationships(ImprovedTransactionData td) {
 		for (Relationship relationship : td.getAllCreatedRelationships()) {
-			eventRegistry.getEvents().forEach(event -> lifecycleIndexer.indexRelationship(event, relationship));
+			events.forEach(event -> lifecycleIndexer.indexRelationship(event, relationship));
 		}
 	}
 
@@ -194,7 +196,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		for (Change<Node> change : td.getAllChangedNodes()) {
 			Node current = change.getCurrent();
 
-			eventRegistry.getEvents().forEach(event -> {
+			events.forEach(event -> {
 				if (event.shouldIndex(current, td)) {
 					lifecycleIndexer.removeNode(event, change.getPrevious());
 					lifecycleIndexer.indexNode(event, current);
@@ -208,7 +210,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 		for (Change<Relationship> change : td.getAllChangedRelationships()) {
 			Relationship current = change.getCurrent();
 
-			eventRegistry.getEvents().forEach(event -> {
+			events.forEach(event -> {
 				if (event.shouldIndex(current, td)) {
 					lifecycleIndexer.removeRelationship(event, change.getPrevious());
 					lifecycleIndexer.indexRelationship(event, current);
