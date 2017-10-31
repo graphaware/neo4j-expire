@@ -19,6 +19,7 @@ package com.graphaware.neo4j.lifecycle.event;
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -90,7 +91,7 @@ public class ExpiryEvent implements LifecycleEvent {
 	}
 
 	@Override
-	public boolean shouldIndex(Node node, ImprovedTransactionData td) {
+	public boolean shouldIndexChanged(Node node, ImprovedTransactionData td) {
 		//TODO: Why index deleted prop?
 		return (td.hasPropertyBeenCreated(node, this.nodeExpirationProperty)
 				|| td.hasPropertyBeenCreated(node, this.nodeTtlProperty)
@@ -101,7 +102,7 @@ public class ExpiryEvent implements LifecycleEvent {
 	}
 
 	@Override
-	public boolean shouldIndex(Relationship current, ImprovedTransactionData td) {
+	public boolean shouldIndexChanged(Relationship current, ImprovedTransactionData td) {
 		//TODO: Why index deleted prop?
 		return (td.hasPropertyBeenCreated(current, this.relationshipExpirationProperty)
 				|| td.hasPropertyBeenCreated(current, this.relationshipTtlProperty)
@@ -109,6 +110,20 @@ public class ExpiryEvent implements LifecycleEvent {
 				|| td.hasPropertyBeenChanged(current, this.relationshipTtlProperty)
 				|| td.hasPropertyBeenDeleted(current, this.relationshipExpirationProperty)
 				|| td.hasPropertyBeenDeleted(current, this.relationshipTtlProperty));
+	}
+
+	@Override
+	public void validate() throws RuntimeException {
+
+		LifecycleEvent.super.validate();
+
+		if (nodeIndex != null && StringUtils.equals(nodeTtlProperty, nodeExpirationProperty)) {
+			throw new IllegalStateException("Node TTL and expiration property are not allowed to be the same!");
+		}
+
+		if (relationshipIndex != null && StringUtils.equals(relationshipTtlProperty, relationshipExpirationProperty)) {
+			throw new IllegalStateException("Relationship TTL and expiration property are not allowed to be the same!");
+		}
 	}
 
 	private Long getExpirationDate(Entity entity, String expirationProperty, String ttlProperty) {

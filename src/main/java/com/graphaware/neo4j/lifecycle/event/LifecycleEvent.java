@@ -18,13 +18,16 @@ package com.graphaware.neo4j.lifecycle.event;
 
 import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.springframework.util.Assert;
 
 public interface LifecycleEvent {
 
 	/**
 	 * Evaluates the date, if any, on which this lifecycle event will be executed for a given node.
+	 *
 	 * @param node to evaluate.
 	 * @return execution date.
 	 */
@@ -32,6 +35,7 @@ public interface LifecycleEvent {
 
 	/**
 	 * Evaluates the date, if any, on which this lifecycle event will be executed for a given relationship.
+	 *
 	 * @param relationship to evaluate.
 	 * @return execution date.
 	 */
@@ -51,6 +55,7 @@ public interface LifecycleEvent {
 	/**
 	 * The strategy to apply on nodes, if any, when this lifecycle event fires. This may be a CompositeStrategy, if
 	 * multiple actions are required, or null if the event does not apply to nodes.
+	 *
 	 * @see com.graphaware.neo4j.lifecycle.strategy.CompositeStrategy
 	 */
 	LifecycleStrategy<Node> nodeStrategy();
@@ -58,17 +63,49 @@ public interface LifecycleEvent {
 	/**
 	 * The strategy to apply on nodes, if any, when this lifecycle event fires. This may be a CompositeStrategy, if
 	 * multiple actions are required, or null if the event does not apply to relationships.
+	 *
 	 * @see com.graphaware.neo4j.lifecycle.strategy.CompositeStrategy
 	 */
 	LifecycleStrategy<Relationship> relationshipStrategy();
 
-	boolean shouldIndex(Node node, ImprovedTransactionData td);
+	/**
+	 * Given transaction data for a changed node, evaluate if the index should be updated.
+	 */
+	boolean shouldIndexChanged(Node node, ImprovedTransactionData td);
 
-	boolean shouldIndex(Relationship relationship, ImprovedTransactionData td);
+	/**
+	 * Given transaction data for a changed relationship, evaluate if the index should be updated.
+	 */
+	boolean shouldIndexChanged(Relationship relationship, ImprovedTransactionData td);
 
+	/**
+	 * The event name. The returned value must be unique among all lifecycle events that are registered with the
+	 * module.
+	 */
 	default String name() {
 		return this.getClass().getSimpleName();
 	}
 
+	/**
+	 * Called on startup to validate that the lifecycle event is in a correctly configured state for usage.
+	 *
+	 * @throws Exception
+	 */
+	default void validate() throws RuntimeException {
+		if (StringUtils.isBlank(nodeIndex()) && StringUtils.isBlank(relationshipIndex())) {
+			String msg = String.format("%s : neither node nor relationship index is configured.", name());
+			throw new IllegalStateException(msg);
+		}
+
+		if (nodeIndex() != null && nodeStrategy() == null) {
+			String msg = String.format("%s : node index is configured without a strategy.", name());
+			throw new IllegalStateException(msg);
+		}
+
+		if (relationshipIndex() != null && relationshipStrategy() == null) {
+			String msg = String.format("%s : relationship index is configured without a strategy.", name());
+			throw new IllegalStateException(msg);
+		}
+	}
 }
 

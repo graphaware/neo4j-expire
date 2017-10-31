@@ -64,7 +64,6 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 	                      int batchSize) {
 		super(moduleId);
 
-		config.validate();
 		this.lifecycleIndexer = new LegacyLifecycleIndexer(database);
 		this.config = config;
 		this.events = events;
@@ -197,7 +196,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 			Node current = change.getCurrent();
 
 			events.forEach(event -> {
-				if (event.shouldIndex(current, td)) {
+				if (event.shouldIndexChanged(current, td)) {
 					lifecycleIndexer.removeNode(event, change.getPrevious());
 					lifecycleIndexer.indexNode(event, current);
 				}
@@ -211,7 +210,7 @@ public class LifecyleModule extends BaseTxDrivenModule<Void> implements TimerDri
 			Relationship current = change.getCurrent();
 
 			events.forEach(event -> {
-				if (event.shouldIndex(current, td)) {
+				if (event.shouldIndexChanged(current, td)) {
 					lifecycleIndexer.removeRelationship(event, change.getPrevious());
 					lifecycleIndexer.indexRelationship(event, current);
 				}

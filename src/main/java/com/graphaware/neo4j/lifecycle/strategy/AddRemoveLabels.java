@@ -30,8 +30,8 @@ import org.neo4j.graphdb.Node;
 
 public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 
-	private Map<String, List<String>> labelsToAdd = new HashMap<>();
-	private Map<String, List<String>> labelsToRemove = new HashMap<>();
+	private Map<Class, List<String>> labelsToAdd = new HashMap<>();
+	private Map<Class, List<String>> labelsToRemove = new HashMap<>();
 
 	static {
 		Serializer.register(AddRemoveLabels.class, new SingletonSerializer());
@@ -51,33 +51,29 @@ public final class AddRemoveLabels extends LifecycleStrategy<Node> {
 	public void setConfig(Map<String, String> config) {
 		super.setConfig(config);
 
-		//TODO: Fragile dependency on event.name() and event.class.getSimpleName being the same
-		String expiryEventName = ExpiryEvent.class.getSimpleName();
-		String revivalEventName = RevivalEvent.class.getSimpleName();
+		labelsToAdd.put(ExpiryEvent.class, toList(config, "nodeExpirationStrategy.labelsToAdd"));
+		labelsToRemove.put(ExpiryEvent.class, toList(config, "nodeExpirationStrategy.labelsToRemove"));
 
-		labelsToAdd.put(expiryEventName, toList(config, "nodeExpirationStrategy.labelsToAdd"));
-		labelsToRemove.put(expiryEventName, toList(config, "nodeExpirationStrategy.labelsToRemove"));
-
-		labelsToAdd.put(revivalEventName, toList(config, "nodeRevivalStrategy.labelsToAdd"));
-		labelsToRemove.put(revivalEventName, toList(config, "nodeRevivalStrategy.labelsToRemove"));
+		labelsToAdd.put(RevivalEvent.class, toList(config, "nodeRevivalStrategy.labelsToAdd"));
+		labelsToRemove.put(RevivalEvent.class, toList(config, "nodeRevivalStrategy.labelsToRemove"));
 	}
 
 	@Override
 	public boolean applyIfNeeded(Node node, LifecycleEvent event) {
-		for (String label : this.labelsToRemove.get(event.name())) {
+		for (String label : this.labelsToRemove.get(event.getClass())) {
 			node.removeLabel(Label.label(label));
 		}
-		for (String label : this.labelsToAdd.get(event.name())) {
+		for (String label : this.labelsToAdd.get(event.getClass())) {
 			node.addLabel(Label.label(label));
 		}
 		return true;
 	}
 
 	private List<String> toList(Map<String, String> config, String propertyName) {
-		String labelsToRemove = config.get(propertyName);
-		if (labelsToRemove != null) {
-			labelsToRemove = labelsToRemove.replaceAll("^\\[|]$", "");
-			return Arrays.stream(labelsToRemove.split(",")).map(String::trim).collect(Collectors.toList());
+		String listOfLabels = config.get(propertyName);
+		if (listOfLabels != null) {
+			listOfLabels = listOfLabels.replaceAll("^\\[|]$", "");
+			return Arrays.stream(listOfLabels.split(",")).map(String::trim).collect(Collectors.toList());
 		}
 		return Collections.emptyList();
 	}

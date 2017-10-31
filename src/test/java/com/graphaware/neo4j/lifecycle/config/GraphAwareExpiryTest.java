@@ -40,7 +40,7 @@ public class GraphAwareExpiryTest {
         LifecycleConfiguration configuration = LifecycleConfiguration.defaultConfiguration().withNodeExpirationProperty("expire");
 
         graphAwareRuntime.registerModule(new LifecyleModule("EXP", graphDatabaseService, configuration,
-                configuration.getEvents(), configuration.getMaxNoExpirations()));
+                configuration.buildEvents(), configuration.getMaxNoExpirations()));
 
         graphAwareRuntime.start();
         graphAwareRuntime.waitUntilStarted();

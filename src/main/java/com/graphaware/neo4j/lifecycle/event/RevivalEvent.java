@@ -19,10 +19,12 @@ package com.graphaware.neo4j.lifecycle.event;
 import com.graphaware.common.log.LoggerFactory;
 import com.graphaware.neo4j.lifecycle.strategy.LifecycleStrategy;
 import com.graphaware.tx.event.improved.api.ImprovedTransactionData;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.logging.Log;
+import org.springframework.util.Assert;
 
 public class RevivalEvent implements LifecycleEvent {
 
@@ -84,7 +86,7 @@ public class RevivalEvent implements LifecycleEvent {
 	}
 
 	@Override
-	public boolean shouldIndex(Node node, ImprovedTransactionData td) {
+	public boolean shouldIndexChanged(Node node, ImprovedTransactionData td) {
 		//TODO: Why index deleted prop?
 		return (td.hasPropertyBeenCreated(node, nodeRevivalProperty)
 				|| td.hasPropertyBeenChanged(node, nodeRevivalProperty)
@@ -92,7 +94,7 @@ public class RevivalEvent implements LifecycleEvent {
 	}
 
 	@Override
-	public boolean shouldIndex(Relationship rel, ImprovedTransactionData td) {
+	public boolean shouldIndexChanged(Relationship rel, ImprovedTransactionData td) {
 		//TODO: Why index deleted prop?
 		return (td.hasPropertyBeenCreated(rel, relationshipRevivalProperty)
 				|| td.hasPropertyBeenChanged(rel, relationshipRevivalProperty)
