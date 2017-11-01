@@ -106,7 +106,8 @@ public class RevivalEvent implements LifecycleEvent {
 		Long result = null;
 		if (entity.hasProperty(revivalProperty)) {
 			try {
-				result = Long.parseLong(entity.getProperty(revivalProperty).toString()) + revivalOffset;
+				long revival = Double.valueOf((entity.getProperty(revivalProperty).toString())).longValue();
+				result = revival + this.revivalOffset;
 			} catch (NumberFormatException e) {
 				LOG.warn("%s revival property is non-numeric: %s", entity.getId(), entity.getProperty(revivalProperty));
 			}

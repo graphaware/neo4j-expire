@@ -135,8 +135,8 @@ public class ExpiryEvent implements LifecycleEvent {
 
 		if (entity.hasProperty(expirationProperty)) {
 			try {
-				long expiryOffset = this.expiryOffset;
-				result = Long.parseLong(entity.getProperty(expirationProperty).toString()) + expiryOffset;
+				long expiry = Double.valueOf((entity.getProperty(expirationProperty).toString())).longValue();
+				result = expiry + this.expiryOffset;
 			} catch (NumberFormatException e) {
 				LOG.warn("%s expiration property is non-numeric: %s", entity.getId(), entity.getProperty(expirationProperty));
 			}
