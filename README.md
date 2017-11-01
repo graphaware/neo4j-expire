@@ -1,10 +1,21 @@
-GraphAware Neo4j Expire
-=======================
+GraphAware Neo4j Lifecycle 
+==========================
+
 
 [![Build Status](https://travis-ci.org/graphaware/neo4j-expire.png)](https://travis-ci.org/graphaware/neo4j-expire) | <a href="http://graphaware.com/products/" target="_blank">Products</a> | <a href="http://products.graphaware.com" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/expire/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 3.2.5.51.4
 
-GraphAware Expire is a simple library that automatically deletes nodes and relationships from the database when they've
-reached their expiration date or time-to-live (TTL).
+GraphAware Neo4j Lifecycle is a simple library that performs state mutations on nodes or relationships when time-triggered life-cycle events occur. Arbitrary events can be registered with the module, however out-of-the-box there are two - 'expiry' and 'revival'.
+
+Each life-cycle event is specified to occur on, or after a date that the event is responsible for calculating. When it fires a task, or set of tasks perform actions.
+
+Some example usages are:
+
+- Automatically delete nodes and relationships from the database when they've reached their expiration date or 
+time-to-live (TTL).
+- Given a marketing platform that contains SalesLead nodes, qualify these as SalesLead:Active or SalesLead:Inactive 
+based on lastActive date.
+- When a node expires, create new relationships based on its state at that point, for example, unread items in an 
+inbox. 
 
 Getting the Software
 --------------------
@@ -61,7 +72,7 @@ And add this configuration to register the Expire module:
 com.graphaware.runtime.enabled=true
 
 #EM becomes the module ID (you will need to use this ID in other config below):
-com.graphaware.module.EM.1=com.graphaware.neo4j.expire.ExpirationModuleBootstrapper
+com.graphaware.module.EM.1=com.graphaware.neo4j.lifecycle.indexer.expire.ExpirationModuleBootstrapper
 
 #If you want to delete nodes at a certain time, configure the node property (in this case "expire")
 #that holds the expiration time in ms since epoch:
@@ -154,3 +165,5 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program.
 If not, see <http://www.gnu.org/licenses/>.
+
+
