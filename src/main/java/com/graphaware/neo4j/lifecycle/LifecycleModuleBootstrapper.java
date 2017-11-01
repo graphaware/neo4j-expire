@@ -282,7 +282,7 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<L
 		if (configExists(properties, EXPIRY_OFFSET)) {
 			String expiryOffset = properties.get(EXPIRY_OFFSET);
 			LOG.info("Expiry offset (ms) set to %s", expiryOffset);
-			configuration = configuration.withExpiryOffset(Integer.valueOf(expiryOffset));
+			configuration = configuration.withExpiryOffset(Long.valueOf(expiryOffset));
 		}
 		return configuration;
 	}
@@ -291,7 +291,7 @@ public class LifecycleModuleBootstrapper extends BaseRuntimeModuleBootstrapper<L
 		if (configExists(properties, REVIVAL_OFFSET)) {
 			String revivalOffset = properties.get(REVIVAL_OFFSET);
 			LOG.info("Revival offset (ms) set to %s", revivalOffset);
-			configuration = configuration.withRevivalOffset(Integer.valueOf(revivalOffset));
+			configuration = configuration.withRevivalOffset(Long.valueOf(revivalOffset));
 		}
 		return configuration;
 	}
