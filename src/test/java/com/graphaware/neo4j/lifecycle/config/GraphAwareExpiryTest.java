@@ -14,9 +14,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-package com.graphaware.neo4j.expire;
+package com.graphaware.neo4j.lifecycle.config;
 
-import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.lifecycle.LifecyleModule;
 import com.graphaware.runtime.GraphAwareRuntime;
 import com.graphaware.runtime.GraphAwareRuntimeFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -37,9 +37,10 @@ public class GraphAwareExpiryTest {
         GraphDatabaseService graphDatabaseService = graphDatabaseBuilder.newGraphDatabase();
         GraphAwareRuntime graphAwareRuntime = GraphAwareRuntimeFactory.createRuntime(graphDatabaseService);
 
-        ExpirationConfiguration configuration = ExpirationConfiguration.defaultConfiguration().withNodeExpirationProperty("expire");
+        LifecycleConfiguration configuration = LifecycleConfiguration.defaultConfiguration().withNodeExpirationProperty("expire");
 
-        graphAwareRuntime.registerModule(new ExpirationModule("EXP", graphDatabaseService, configuration));
+        graphAwareRuntime.registerModule(new LifecyleModule("EXP", graphDatabaseService, configuration,
+                configuration.scheduledEvents(), configuration.commitEvents(), configuration.getMaxNoExpirations()));
 
         graphAwareRuntime.start();
         graphAwareRuntime.waitUntilStarted();
