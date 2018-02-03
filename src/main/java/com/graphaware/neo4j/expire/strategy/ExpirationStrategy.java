@@ -16,19 +16,19 @@
 
 package com.graphaware.neo4j.expire.strategy;
 
-import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Entity;
 
 /**
- * A strategy for expiring {@link PropertyContainer}s.
+ * A strategy for expiring {@link Entity}s.
  *
- * @param <P> type of container this strategy is for.
+ * @param <E> type of entity this strategy is for.
  */
-public interface ExpirationStrategy<P extends PropertyContainer> {
+public interface ExpirationStrategy<E extends Entity> {
 
     /**
-     * Expire a container.
+     * Expire an entity.
      *
-     * @param pc to expire.
+     * @param entity to expire.
      */
-    void expire(P pc);
+    void expire(E entity);
 }

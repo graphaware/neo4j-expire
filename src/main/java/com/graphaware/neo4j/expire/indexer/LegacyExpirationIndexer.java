@@ -183,7 +183,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
         return result;
     }
 
-    private boolean hasExpirationProperty(PropertyContainer pc, String expirationProperty, String ttlProperty) {
-        return (pc.hasProperty(expirationProperty) || pc.hasProperty(ttlProperty));
+    private boolean hasExpirationProperty(Entity entity, String expirationProperty, String ttlProperty) {
+        return (entity.hasProperty(expirationProperty) || entity.hasProperty(ttlProperty));
     }
 }
