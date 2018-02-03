@@ -105,8 +105,8 @@ public class ExpirationConfiguration extends BaseTxAndTimerDrivenModuleConfigura
             throw new IllegalStateException("Neither node nor relationship expiry is configured. What's the point of having the module?");
         }
 
-        Assert.notNull(nodeExpirationStrategy);
-        Assert.notNull(relationshipExpirationStrategy);
+        Assert.notNull(nodeExpirationStrategy, "node expiration strategy must not be null");
+        Assert.notNull(relationshipExpirationStrategy, "relationship expiration strategy must not be null");
 
         if (nodeExpirationIndex != null && StringUtils.equals(nodeTtlProperty, nodeExpirationProperty)) {
             throw new IllegalStateException("Node TTL and expiration property are not allowed to be the same!");

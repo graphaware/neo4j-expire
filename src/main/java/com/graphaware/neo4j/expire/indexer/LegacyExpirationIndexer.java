@@ -25,7 +25,7 @@ import org.neo4j.index.lucene.QueryContext;
 import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.logging.Log;
 
-import static com.graphaware.common.util.PropertyContainerUtils.*;
+import static com.graphaware.common.util.EntityUtils.*;
 
 /**
  * {@link ExpirationIndexer} that uses the legacy index of Neo4j.
@@ -143,27 +143,27 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
         return getExpirationDate(relationship, configuration.getRelationshipExpirationProperty(), configuration.getRelationshipTtlProperty());
     }
 
-    private Long getExpirationDate(PropertyContainer pc, String expirationProperty, String ttlProperty) {
-        if (!hasExpirationProperty(pc, expirationProperty, ttlProperty)) {
+    private Long getExpirationDate(Entity entity, String expirationProperty, String ttlProperty) {
+        if (!hasExpirationProperty(entity, expirationProperty, ttlProperty)) {
             return null;
         }
 
         Long result = null;
 
-        if (pc.hasProperty(expirationProperty)) {
+        if (entity.hasProperty(expirationProperty)) {
             try {
-                result = Long.parseLong(pc.getProperty(expirationProperty).toString());
+                result = Long.parseLong(entity.getProperty(expirationProperty).toString());
             } catch (NumberFormatException e) {
-                LOG.warn("%s expiration property is non-numeric: %s", id(pc), pc.getProperty(expirationProperty));
+                LOG.warn("%s expiration property is non-numeric: %s", entity.getId(), entity.getProperty(expirationProperty));
             }
         }
 
-        if (pc.hasProperty(ttlProperty)) {
+        if (entity.hasProperty(ttlProperty)) {
             try {
-                long newResult = System.currentTimeMillis() + Long.parseLong(pc.getProperty(ttlProperty).toString());
+                long newResult = System.currentTimeMillis() + Long.parseLong(entity.getProperty(ttlProperty).toString());
 
                 if (result != null) {
-                    LOG.warn("%s has both expiry date and a ttl.", id(pc));
+                    LOG.warn("%s has both expiry date and a ttl.", entity.getId());
 
                     if (newResult > result) {
                         LOG.warn("Using ttl as it is later.");
@@ -176,7 +176,7 @@ public class LegacyExpirationIndexer implements ExpirationIndexer {
                     result = newResult;
                 }
             } catch (NumberFormatException e) {
-                LOG.warn("%s ttl property is non-numeric: %s", id(pc), pc.getProperty(ttlProperty));
+                LOG.warn("%s ttl property is non-numeric: %s", entity.getId(), entity.getProperty(ttlProperty));
             }
         }
 
