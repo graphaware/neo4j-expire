@@ -18,6 +18,7 @@ package com.graphaware.neo4j.expire;
 
 import com.graphaware.common.util.IterableUtils;
 import com.graphaware.neo4j.expire.config.ExpirationConfiguration;
+import com.graphaware.neo4j.expire.indexer.LegacyExpirationIndexer;
 import com.graphaware.neo4j.expire.strategy.DeleteNodeAndRelationships;
 import com.graphaware.neo4j.expire.strategy.DeleteOrphanedNodeOnly;
 import com.graphaware.runtime.GraphAwareRuntime;
@@ -27,7 +28,10 @@ import com.graphaware.runtime.schedule.FixedDelayTimingStrategy;
 import com.graphaware.test.integration.EmbeddedDatabaseIntegrationTest;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.junit.Test;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.Iterables;
 
 import static com.graphaware.test.unit.GraphUnit.assertEmpty;
@@ -39,6 +43,7 @@ import static org.junit.Assert.assertNotEquals;
 public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest {
 
     private static final long SECOND = 1_000;
+    private static final long MINUTE = 60_000;
 
     @Test
     public void shouldExpireNodesWhenExpiryDateReached() {
@@ -499,6 +504,97 @@ public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest
         assertEmpty(getDatabase());
     }
 
+    @Test
+    public void shouldRemoveNodeFromIndexWhenManuallyDeleted() {
+        ExpirationConfiguration config = ExpirationConfiguration.defaultConfiguration().withNodeExpirationProperty("expire").withMaxNoExpirations(1);
+        bootstrap(config);
+        long now = System.currentTimeMillis();
+        long twoMinutesFromNow = now + 2 * MINUTE;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (int i = 0; i < 100; i++) {
+                getDatabase().execute("CREATE (s1:State {name:'Cloudy" + i + "', expire:" + twoMinutesFromNow + "})");
+            }
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(100, nodesScheduledForExpiration(config).size());
+            tx.success();
+        }
+
+        clearDatabase();
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(0, nodesScheduledForExpiration(config).size());
+            tx.success();
+        }
+    }
+
+    @Test
+    public void testRemovingNotExpiringNodesShouldNotThrowException() {
+        ExpirationConfiguration config = ExpirationConfiguration.defaultConfiguration().withNodeExpirationProperty("expire").withMaxNoExpirations(1);
+        bootstrap(config);
+        long now = System.currentTimeMillis();
+        long twoMinutesFromNow = now + 2 * MINUTE;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            for (int i = 0; i < 100; i++) {
+                getDatabase().execute("CREATE (s1:State {name:'Cloudy" + i + "', expire:" + twoMinutesFromNow + "})");
+                getDatabase().execute("CREATE (n:Test)");
+            }
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(100, nodesScheduledForExpiration(config).size());
+            tx.success();
+        }
+
+        clearDatabase();
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(0, nodesScheduledForExpiration(config).size());
+            tx.success();
+        }
+    }
+
+    @Test
+    public void shouldRemoveRelationshipsFromIndexWhenManuallyDeleted() {
+        ExpirationConfiguration config = ExpirationConfiguration
+                .defaultConfiguration()
+                .withNodeExpirationProperty("expire")
+                .withRelationshipExpirationProperty("expire")
+                .withMaxNoExpirations(1);
+        bootstrap(config);
+
+        long now = System.currentTimeMillis();
+        long twoMinutesFromNow = now + 2 * MINUTE;
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().execute("CREATE (s1:State {name:'Cloudy', expire:" + twoMinutesFromNow + "})-[:THEN {expire:" + twoMinutesFromNow + "}]->(s2:State {name:'Windy', expire:" + twoMinutesFromNow + "})");
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(2, nodesScheduledForExpiration(config).size());
+            assertEquals(1, relationshipsScheduledForExpiration(config).size());
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().execute("MATCH (n)-[r]->() DELETE r");
+            tx.success();
+        }
+
+        try (Transaction tx = getDatabase().beginTx()) {
+            assertEquals(2, nodesScheduledForExpiration(config).size());
+            assertEquals(0, relationshipsScheduledForExpiration(config).size());
+            tx.success();
+        }
+
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldFailToStartWithInvalidConfig() {
         bootstrap(ExpirationConfiguration.defaultConfiguration());
@@ -558,5 +654,24 @@ public class ProgrammaticIntegrationTest extends EmbeddedDatabaseIntegrationTest
 
     private long countRelationshipsInIndex() {
         return Iterables.count(getDatabase().index().forRelationships("relationshipExpirationIndex").query(new MatchAllDocsQuery()));
+    }
+
+    private IndexHits<Relationship> relationshipsScheduledForExpiration(ExpirationConfiguration configuration) {
+        return expirationIndexer(configuration).relationshipsExpiringBefore(System.currentTimeMillis() + (100 * MINUTE));
+    }
+
+    private IndexHits<Node> nodesScheduledForExpiration(ExpirationConfiguration configuration) {
+        return expirationIndexer(configuration).nodesExpiringBefore(System.currentTimeMillis() + (100 * MINUTE));
+    }
+
+    private LegacyExpirationIndexer expirationIndexer(ExpirationConfiguration config) {
+        return new LegacyExpirationIndexer(getDatabase(), config);
+    }
+
+    private void clearDatabase() {
+        try (Transaction tx = getDatabase().beginTx()) {
+            getDatabase().execute("MATCH (n) DETACH DELETE n");
+            tx.success();
+        }
     }
 }
