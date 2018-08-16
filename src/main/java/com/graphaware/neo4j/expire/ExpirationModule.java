@@ -39,6 +39,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.logging.Log;
 
+import java.util.Collection;
+
 /**
  * A {@link TxDrivenModule} and a {@link TimerDrivenModule} that allows for setting an expiry date or ttl on nodes
  * and relationships and deletes them when they have reached that date.
@@ -61,14 +63,29 @@ public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerD
 
     @Override
     public Void beforeCommit(ImprovedTransactionData td) throws DeliberateTransactionRollbackException {
-        for (Node node : td.getAllCreatedNodes()) {
+        handleCreatedNodes(td.getAllCreatedNodes());
+        handleCreatedRelationships(td.getAllCreatedRelationships());
+        handleUpdatedNodes(td);
+        handleUpdatedRelationships(td);
+        handleDeletedNodes(td);
+        handleDeletedRelationships(td);
+
+        return null;
+    }
+
+    private void handleCreatedNodes(Collection<Node> nodes) {
+        for (Node node : nodes) {
             indexer.indexNode(node);
         }
+    }
 
-        for (Relationship relationship : td.getAllCreatedRelationships()) {
+    private void handleCreatedRelationships(Collection<Relationship> relationships) {
+        for (Relationship relationship : relationships) {
             indexer.indexRelationship(relationship);
         }
+    }
 
+    private void handleUpdatedNodes(ImprovedTransactionData td) {
         for (Change<Node> change : td.getAllChangedNodes()) {
             Node current = change.getCurrent();
             String expProp = config.getNodeExpirationProperty();
@@ -85,7 +102,9 @@ public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerD
                 indexer.indexNode(current);
             }
         }
+    }
 
+    private void handleUpdatedRelationships(ImprovedTransactionData td) {
         for (Change<Relationship> change : td.getAllChangedRelationships()) {
             Relationship current = change.getCurrent();
             String expProp = config.getRelationshipExpirationProperty();
@@ -102,8 +121,18 @@ public class ExpirationModule extends BaseTxDrivenModule<Void> implements TimerD
                 indexer.indexRelationship(current);
             }
         }
+    }
 
-        return null;
+    private void handleDeletedNodes(ImprovedTransactionData td) {
+        for (Node node : td.getAllDeletedNodes()) {
+            indexer.removeNode(node);
+        }
+    }
+
+    private void handleDeletedRelationships(ImprovedTransactionData td) {
+        for (Relationship relationship : td.getAllDeletedRelationships()) {
+            indexer.removeRelationship(relationship);
+        }
     }
 
     @Override
