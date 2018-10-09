@@ -35,18 +35,18 @@ public class MinimalConfigExpiryTest extends GraphAwareIntegrationTest {
     @Test
     public void shouldExpireNodesAndRelationshipsWhenExpiryDateReached() {
         long now = System.currentTimeMillis();
-        long twoSecondsFromNow = now + 2 * SECOND;
-        long threeSecondsFromNow = now + 3 * SECOND;
+        long fiveSecondsFromNow = now + 5 * SECOND;
+        long sixSecondsFromNow = now + 6 * SECOND;
 
-        getDatabase().execute("CREATE (s1:State {name:'Cloudy', expire:" + twoSecondsFromNow + "})-[:THEN {expire:" + twoSecondsFromNow + "}]->(s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
+        getDatabase().execute("CREATE (s1:State {name:'Cloudy', expire:" + fiveSecondsFromNow + "})-[:THEN {expire:" + fiveSecondsFromNow + "}]->(s2:State {name:'Windy', expire:" + sixSecondsFromNow + "})");
 
-        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', expire:" + twoSecondsFromNow + "})-[:THEN {expire:" + twoSecondsFromNow + "}]->(s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
+        assertSameGraph(getDatabase(), "CREATE (s1:State {name:'Cloudy', expire:" + fiveSecondsFromNow + "})-[:THEN {expire:" + fiveSecondsFromNow + "}]->(s2:State {name:'Windy', expire:" + sixSecondsFromNow + "})");
 
-        waitFor(2100 - (System.currentTimeMillis() - now));
+        waitFor(5100 - (System.currentTimeMillis() - now));
 
-        assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', expire:" + threeSecondsFromNow + "})");
+        assertSameGraph(getDatabase(), "CREATE (s2:State {name:'Windy', expire:" + sixSecondsFromNow + "})");
 
-        waitFor(3100 - (System.currentTimeMillis() - now));
+        waitFor(6100 - (System.currentTimeMillis() - now));
 
         assertEmpty(getDatabase());
     }
