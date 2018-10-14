@@ -12,3 +12,4 @@ target/
 .classpath
 neo4j-home/
 data/
+metrics/
