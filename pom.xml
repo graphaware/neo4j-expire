@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>expire</artifactId>
-    <version>3.4.9.52.5-SNAPSHOT</version>
+    <version>3.5.0.53.4-SNAPSHOT</version>
 
     <parent>
         <groupId>com.graphaware.neo4j</groupId>
         <artifactId>module-parent</artifactId>
-        <version>3.4.9.52</version>
+        <version>3.5.0.53</version>
     </parent>
 
     <name>GraphAware Expire Module</name>
@@ -39,11 +39,6 @@
     </scm>
 
     <developers>
-        <developer>
-            <id>ds</id>
-            <name>David Simons</name>
-            <email>david@graphaware.com</email>
-        </developer>
         <developer>
             <id>bachmanm</id>
             <name>Michal Bachman</name>
