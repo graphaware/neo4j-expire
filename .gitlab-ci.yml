@@ -16,8 +16,7 @@ uploadArtifact:
   dependencies:
     - bumpVersion
   variables:
-    FROM: target/expire-$PARENT_VERSION.jar
-    TO: $AWS_PATH/expire-$PARENT_VERSION.jar
+    JAR_NAME: recommendation-engine
   only:
     refs:
       - master
