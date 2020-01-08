@@ -4,3 +4,9 @@ include:
 
 variables:
   JAR_NAME: expire
+
+publishJavaDoc:
+  extends: .publishJavaDoc
+  variables:
+    FROM: target/apidocs
+    TO: expire
