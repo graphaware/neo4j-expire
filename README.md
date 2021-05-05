@@ -1,7 +1,8 @@
-GraphAware Neo4j Expire
+GraphAware Neo4j Expire - RETIRED
 =======================
 
-[![Build Status](https://travis-ci.org/graphaware/neo4j-expire.png)](https://travis-ci.org/graphaware/neo4j-expire) | <a href="http://graphaware.com/products/" target="_blank">Products</a> | <a href="http://products.graphaware.com" target="_blank">Downloads</a> | <a href="http://graphaware.com/site/expire/latest/apidocs/" target="_blank">Javadoc</a> | Latest Release: 3.5.11.54.4
+## GraphAware Neo4j Expire Has Been Retired
+As of May 2021, this [repository has been retired](https://graphaware.com/framework/2021/05/06/from-graphaware-framework-to-graphaware-hume.html).
 
 GraphAware Expire is a simple library that automatically deletes nodes and relationships from the database when they've
 reached their expiration date or time-to-live (TTL).
